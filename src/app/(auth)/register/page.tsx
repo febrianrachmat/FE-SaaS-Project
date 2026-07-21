@@ -1,6 +1,10 @@
 import Link from "next/link";
-import { Button } from "@/shared/ui/button";
+import { RegisterForm } from "@/features/auth";
 import { APP_NAME } from "@/config/env";
+
+export const metadata = {
+  title: "Create account",
+};
 
 export default function RegisterPage() {
   return (
@@ -16,16 +20,9 @@ export default function RegisterPage() {
           Create account
         </h1>
         <p className="mt-2 text-sm text-slate-500">
-          Registration flow ships in Milestone 1.
+          Start managing projects with FlowPilot.
         </p>
-        <div className="mt-8 space-y-3">
-          <div className="h-10 rounded-lg border border-slate-200 bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900" />
-          <div className="h-10 rounded-lg border border-slate-200 bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900" />
-          <div className="h-10 rounded-lg border border-slate-200 bg-slate-50 dark:border-zinc-800 dark:bg-zinc-900" />
-          <Button className="w-full" disabled>
-            Create account
-          </Button>
-        </div>
+        <RegisterForm />
         <p className="mt-6 text-center text-sm text-slate-500">
           Already have an account?{" "}
           <Link href="/login" className="text-primary-600 hover:underline">

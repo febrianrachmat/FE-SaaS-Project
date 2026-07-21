@@ -8,6 +8,16 @@ type RequestOptions = {
   signal?: AbortSignal;
 };
 
+async function parseJsonSafe(response: Response): Promise<ApiResponse<unknown> | null> {
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text) as ApiResponse<unknown>;
+  } catch {
+    return null;
+  }
+}
+
 export async function apiClient<T>(
   path: string,
   options: RequestOptions = {},
@@ -25,12 +35,13 @@ export async function apiClient<T>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 
-  const payload = (await response.json()) as ApiResponse<T>;
+  const payload = await parseJsonSafe(response);
 
-  if (!response.ok || !payload.success) {
-    const error = !payload.success
-      ? payload.error
-      : { code: "UNKNOWN", message: "Request failed" };
+  if (!response.ok || !payload || !payload.success) {
+    const error =
+      payload && !payload.success
+        ? payload.error
+        : { code: "UNKNOWN", message: "Request failed" };
 
     throw new ApiError(error.message, {
       code: error.code,
@@ -39,5 +50,5 @@ export async function apiClient<T>(
     });
   }
 
-  return payload.data;
+  return payload.data as T;
 }

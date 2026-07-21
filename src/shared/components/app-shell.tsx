@@ -10,11 +10,13 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
+  LogOut,
 } from "lucide-react";
 import { useUiStore } from "@/shared/stores/ui-store";
 import { cn } from "@/shared/lib/utils";
 import { APP_NAME } from "@/config/env";
 import { Button } from "@/shared/ui/button";
+import { useAuthStore, useLogout } from "@/features/auth";
 
 const NAV = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard },
@@ -25,6 +27,7 @@ const NAV = [
 
 export function AppSidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
+  const logout = useLogout();
 
   return (
     <aside
@@ -82,11 +85,39 @@ export function AppSidebar() {
           </Link>
         ))}
       </nav>
+
+      <div className="border-t border-slate-200 p-2 dark:border-zinc-800">
+        <Button
+          variant="ghost"
+          className={cn(
+            "w-full justify-start gap-3 text-slate-600 dark:text-zinc-400",
+            sidebarCollapsed && "justify-center px-0",
+          )}
+          onClick={() => logout.mutate()}
+          disabled={logout.isPending}
+          aria-label="Sign out"
+        >
+          <LogOut className="h-4 w-4 shrink-0" />
+          {!sidebarCollapsed ? (
+            <span>{logout.isPending ? "Signing out…" : "Sign out"}</span>
+          ) : null}
+        </Button>
+      </div>
     </aside>
   );
 }
 
 export function AppTopbar() {
+  const user = useAuthStore((s) => s.user);
+  const initials = user?.name
+    ? user.name
+        .split(" ")
+        .map((p) => p[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "U";
+
   return (
     <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
       <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-400 dark:border-zinc-800 dark:bg-zinc-900">
@@ -102,9 +133,10 @@ export function AppTopbar() {
         </Button>
         <div
           className="h-8 w-8 rounded-full bg-primary-100 text-center text-xs leading-8 font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-200"
-          aria-hidden
+          title={user?.email}
+          aria-label={user?.name ?? "User"}
         >
-          U
+          {initials}
         </div>
       </div>
     </header>
