@@ -17,6 +17,7 @@ import { cn } from "@/shared/lib/utils";
 import { APP_NAME } from "@/config/env";
 import { Button } from "@/shared/ui/button";
 import { useAuthStore, useLogout } from "@/features/auth";
+import { WorkspaceSwitcher } from "@/features/workspace";
 
 const NAV = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard },
@@ -69,6 +70,8 @@ export function AppSidebar() {
           <PanelLeft className="h-4 w-4" />
         </Button>
       ) : null}
+
+      <WorkspaceSwitcher />
 
       <nav className="flex flex-1 flex-col gap-1 px-2 py-2" aria-label="Main">
         {NAV.map(({ href, label, icon: Icon }) => (
