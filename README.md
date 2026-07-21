@@ -41,6 +41,11 @@ App: http://localhost:3000
 | `npm run dev` | Dev server (Turbopack) |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
+| `npm test` | Unit tests (Kanban positioning) |
+
+## Deploy
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for Vercel setup and env vars.
 
 ## Related
 

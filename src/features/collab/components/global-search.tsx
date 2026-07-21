@@ -37,7 +37,9 @@ export function GlobalSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-400 dark:border-zinc-800 dark:bg-zinc-900"
+        aria-label="Open search"
+        aria-keyshortcuts="Meta+K Control+K"
+        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-zinc-800 dark:bg-zinc-900"
       >
         <Search className="h-4 w-4" aria-hidden />
         <span>Search…</span>

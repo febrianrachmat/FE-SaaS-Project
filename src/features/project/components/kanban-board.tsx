@@ -64,10 +64,14 @@ function KanbanCard({
       {...listeners}
       onClick={onSelect}
       onKeyDown={(e) => {
-        if (e.key === "Enter") onSelect?.();
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect?.();
+        }
       }}
       role="button"
       tabIndex={0}
+      aria-label={`Open task ${task.title}`}
     >
       <p className="text-sm font-medium text-slate-900 dark:text-zinc-50">
         {task.title}
@@ -107,6 +111,8 @@ function KanbanColumn({
         "flex w-72 shrink-0 flex-col rounded-2xl border border-slate-200 bg-slate-50/80 dark:border-zinc-800 dark:bg-zinc-950/60",
         isOver && "ring-2 ring-primary-400/40",
       )}
+      role="region"
+      aria-label={`${label} column`}
     >
       <div className="flex items-center justify-between px-3 py-3">
         <h3 className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
