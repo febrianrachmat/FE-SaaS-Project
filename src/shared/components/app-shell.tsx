@@ -17,11 +17,11 @@ import { cn } from "@/shared/lib/utils";
 import { APP_NAME } from "@/config/env";
 import { Button } from "@/shared/ui/button";
 import { useAuthStore, useLogout } from "@/features/auth";
-import { WorkspaceSwitcher } from "@/features/workspace";
+import { WorkspaceSwitcher, useWorkspaceStore } from "@/features/workspace";
 
 const NAV = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/app/projects", label: "Projects", icon: FolderKanban },
+  { href: "projects", label: "Projects", icon: FolderKanban, workspaceScoped: true },
   { href: "/app/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ] as const;
@@ -29,6 +29,7 @@ const NAV = [
 export function AppSidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
   const logout = useLogout();
+  const activeSlug = useWorkspaceStore((s) => s.activeSlug);
 
   return (
     <aside
@@ -74,9 +75,17 @@ export function AppSidebar() {
       <WorkspaceSwitcher />
 
       <nav className="flex flex-1 flex-col gap-1 px-2 py-2" aria-label="Main">
-        {NAV.map(({ href, label, icon: Icon }) => (
+        {NAV.map((item) => {
+          const href =
+            "workspaceScoped" in item && item.workspaceScoped
+              ? activeSlug
+                ? `/app/w/${activeSlug}/projects`
+                : "/app"
+              : item.href;
+          const Icon = item.icon;
+          return (
           <Link
-            key={href}
+            key={item.label}
             href={href}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-50",
@@ -84,9 +93,10 @@ export function AppSidebar() {
             )}
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden />
-            {!sidebarCollapsed ? <span>{label}</span> : null}
+            {!sidebarCollapsed ? <span>{item.label}</span> : null}
           </Link>
-        ))}
+          );
+        })}
       </nav>
 
       <div className="border-t border-slate-200 p-2 dark:border-zinc-800">

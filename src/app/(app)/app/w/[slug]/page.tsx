@@ -10,7 +10,7 @@ import {
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { Settings, Users } from "lucide-react";
+import { Settings, Users, FolderKanban } from "lucide-react";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -60,12 +60,20 @@ export default function WorkspaceHomePage({ params }: PageProps) {
             {data.role?.replace("_", " ")}
           </p>
         </div>
-        <Link href={`/app/w/${slug}/settings`}>
-          <Button variant="outline">
-            <Settings className="h-4 w-4" />
-            Settings
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href={`/app/w/${slug}/projects`}>
+            <Button variant="secondary">
+              <FolderKanban className="h-4 w-4" />
+              Projects
+            </Button>
+          </Link>
+          <Link href={`/app/w/${slug}/settings`}>
+            <Button variant="outline">
+              <Settings className="h-4 w-4" />
+              Settings
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <section className="space-y-4">
