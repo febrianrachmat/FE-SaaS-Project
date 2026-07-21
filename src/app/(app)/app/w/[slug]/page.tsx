@@ -7,10 +7,11 @@ import {
   MembersList,
   useWorkspace,
 } from "@/features/workspace";
+import { WorkspaceDashboard } from "@/features/dashboard";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { Settings, Users, FolderKanban } from "lucide-react";
+import { Settings, Users, FolderKanban, CalendarDays } from "lucide-react";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -42,29 +43,34 @@ export default function WorkspaceHomePage({ params }: PageProps) {
     );
   }
 
-  const canInvite =
-    data.role === "ADMIN" || data.role === "OWNER";
+  const canInvite = data.role === "ADMIN" || data.role === "OWNER";
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight">
             {data.name}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {data.description || "No description yet."}
+            {data.description || "Workspace overview & analytics"}
           </p>
           <p className="mt-2 text-xs text-slate-400">
             /{data.slug} · {data.memberCount ?? 0} members · your role:{" "}
             {data.role?.replace("_", " ")}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link href={`/app/w/${slug}/projects`}>
             <Button variant="secondary">
               <FolderKanban className="h-4 w-4" />
               Projects
+            </Button>
+          </Link>
+          <Link href={`/app/w/${slug}/calendar`}>
+            <Button variant="outline">
+              <CalendarDays className="h-4 w-4" />
+              Calendar
             </Button>
           </Link>
           <Link href={`/app/w/${slug}/settings`}>
@@ -75,6 +81,8 @@ export default function WorkspaceHomePage({ params }: PageProps) {
           </Link>
         </div>
       </div>
+
+      <WorkspaceDashboard workspaceSlug={slug} />
 
       <section className="space-y-4">
         <div className="flex items-center gap-2">

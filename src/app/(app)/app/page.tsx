@@ -6,11 +6,22 @@ import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { LayoutDashboard, Plus } from "lucide-react";
 import { useAuthStore } from "@/features/auth";
-import { useWorkspaces } from "@/features/workspace";
+import { useWorkspaces, useWorkspaceStore } from "@/features/workspace";
+import { WorkspaceDashboard } from "@/features/dashboard";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const { data: workspaces, isLoading } = useWorkspaces();
+  const { activeSlug, setActiveWorkspace } = useWorkspaceStore();
+
+  useEffect(() => {
+    if (!workspaces?.length) return;
+    if (activeSlug && workspaces.some((w) => w.slug === activeSlug)) return;
+    setActiveWorkspace(workspaces[0]);
+  }, [workspaces, activeSlug, setActiveWorkspace]);
+
+  const active = workspaces?.find((w) => w.slug === activeSlug) ?? workspaces?.[0];
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -20,7 +31,9 @@ export default function DashboardPage() {
             Welcome{user ? `, ${user.name.split(" ")[0]}` : ""}
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-zinc-400">
-            Choose a workspace or create a new one to get started.
+            {active
+              ? `Analytics for ${active.name}`
+              : "Choose a workspace or create a new one to get started."}
           </p>
         </div>
         <Link href="/app/workspaces/new">
@@ -37,26 +50,32 @@ export default function DashboardPage() {
           <Skeleton className="h-28" />
           <Skeleton className="h-28" />
         </div>
-      ) : workspaces && workspaces.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {workspaces.map((ws) => (
-            <Link
-              key={ws.id}
-              href={`/app/w/${ws.slug}`}
-              className="rounded-2xl border border-slate-200 bg-white p-5 transition-colors hover:border-primary-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-primary-700"
-            >
-              <p className="font-semibold text-slate-900 dark:text-zinc-50">
+      ) : workspaces && workspaces.length > 0 && active ? (
+        <>
+          <div className="flex flex-wrap gap-2">
+            {workspaces.map((ws) => (
+              <button
+                key={ws.id}
+                type="button"
+                onClick={() => setActiveWorkspace(ws)}
+                className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${
+                  ws.slug === active.slug
+                    ? "bg-primary-600 text-white"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-zinc-800 dark:text-zinc-300"
+                }`}
+              >
                 {ws.name}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                /{ws.slug} · {ws.memberCount ?? 0} members
-              </p>
-              <p className="mt-3 text-xs font-medium text-primary-600">
-                {ws.role?.replace("_", " ")}
-              </p>
+              </button>
+            ))}
+            <Link
+              href={`/app/w/${active.slug}`}
+              className="rounded-lg px-3 py-1.5 text-sm text-primary-600 hover:underline"
+            >
+              Open workspace →
             </Link>
-          ))}
-        </div>
+          </div>
+          <WorkspaceDashboard workspaceSlug={active.slug} />
+        </>
       ) : (
         <EmptyState
           icon={<LayoutDashboard className="h-10 w-10" />}
