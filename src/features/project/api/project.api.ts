@@ -98,6 +98,31 @@ export const projectApi = {
       { method: "DELETE" },
     ),
 
+  moveTask: (
+    workspaceSlug: string,
+    projectSlug: string,
+    taskId: string,
+    payload: { status: TaskStatus; position: number },
+  ) =>
+    apiClient<Task>(
+      `/workspaces/${workspaceSlug}/projects/${projectSlug}/tasks/${taskId}/move`,
+      { method: "POST", body: payload },
+    ),
+
+  calendar: (workspaceSlug: string, from: string, to: string) =>
+    apiClient<
+      Array<
+        Task & {
+          project: {
+            id: string;
+            name: string;
+            slug: string;
+            icon: string | null;
+          };
+        }
+      >
+    >(`/workspaces/${workspaceSlug}/calendar?from=${from}&to=${to}`),
+
   addChecklist: (
     workspaceSlug: string,
     projectSlug: string,

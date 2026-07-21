@@ -22,7 +22,7 @@ import { WorkspaceSwitcher, useWorkspaceStore } from "@/features/workspace";
 const NAV = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard },
   { href: "projects", label: "Projects", icon: FolderKanban, workspaceScoped: true },
-  { href: "/app/calendar", label: "Calendar", icon: CalendarDays },
+  { href: "calendar", label: "Calendar", icon: CalendarDays, workspaceScoped: true },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ] as const;
 
@@ -79,7 +79,7 @@ export function AppSidebar() {
           const href =
             "workspaceScoped" in item && item.workspaceScoped
               ? activeSlug
-                ? `/app/w/${activeSlug}/projects`
+                ? `/app/w/${activeSlug}/${item.href}`
                 : "/app"
               : item.href;
           const Icon = item.icon;

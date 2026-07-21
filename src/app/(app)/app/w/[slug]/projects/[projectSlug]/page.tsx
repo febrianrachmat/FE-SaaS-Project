@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import Link from "next/link";
 import {
   CreateTaskForm,
+  KanbanBoard,
   TaskDetailPanel,
   TaskRow,
   useProject,
@@ -14,8 +15,9 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { ArrowLeft, Star } from "lucide-react";
+import { ArrowLeft, LayoutGrid, List, Star } from "lucide-react";
 import type { TaskStatus } from "@/shared/types/domain";
+import { cn } from "@/shared/lib/utils";
 
 type Props = {
   params: Promise<{ slug: string; projectSlug: string }>;
@@ -28,6 +30,7 @@ export default function ProjectDetailPage({ params }: Props) {
   const favorite = useToggleFavorite(slug, projectSlug);
   const updateTask = useUpdateTask(slug, projectSlug);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [view, setView] = useState<"board" | "list">("board");
 
   if (isLoading || !project) {
     return <Skeleton className="h-64 w-full" />;
@@ -54,21 +57,51 @@ export default function ProjectDetailPage({ params }: Props) {
               tasks
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => favorite.mutate()}
-            disabled={favorite.isPending}
-          >
-            <Star
-              className={`h-4 w-4 ${project.isFavorite ? "fill-amber-400 text-amber-400" : ""}`}
-            />
-            {project.isFavorite ? "Favorited" : "Favorite"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex rounded-lg border border-slate-200 p-0.5 dark:border-zinc-700">
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(view === "board" && "bg-slate-100 dark:bg-zinc-800")}
+                onClick={() => setView("board")}
+                aria-pressed={view === "board"}
+              >
+                <LayoutGrid className="h-4 w-4" />
+                Board
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(view === "list" && "bg-slate-100 dark:bg-zinc-800")}
+                onClick={() => setView("list")}
+                aria-pressed={view === "list"}
+              >
+                <List className="h-4 w-4" />
+                List
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => favorite.mutate()}
+              disabled={favorite.isPending}
+            >
+              <Star
+                className={`h-4 w-4 ${project.isFavorite ? "fill-amber-400 text-amber-400" : ""}`}
+              />
+              {project.isFavorite ? "Favorited" : "Favorite"}
+            </Button>
+          </div>
         </div>
 
         <CreateTaskForm workspaceSlug={slug} projectSlug={projectSlug} />
 
-        {tasksLoading ? (
+        {view === "board" ? (
+          <KanbanBoard
+            workspaceSlug={slug}
+            projectSlug={projectSlug}
+            onSelectTask={setSelectedTaskId}
+          />
+        ) : tasksLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-14" />
             <Skeleton className="h-14" />
