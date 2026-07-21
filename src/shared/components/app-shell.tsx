@@ -5,8 +5,6 @@ import {
   LayoutDashboard,
   FolderKanban,
   CalendarDays,
-  Search,
-  Bell,
   Settings,
   PanelLeftClose,
   PanelLeft,
@@ -18,6 +16,7 @@ import { APP_NAME } from "@/config/env";
 import { Button } from "@/shared/ui/button";
 import { useAuthStore, useLogout } from "@/features/auth";
 import { WorkspaceSwitcher, useWorkspaceStore } from "@/features/workspace";
+import { GlobalSearch, NotificationsMenu } from "@/features/collab";
 
 const NAV = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard },
@@ -133,17 +132,9 @@ export function AppTopbar() {
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
-      <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-400 dark:border-zinc-800 dark:bg-zinc-900">
-        <Search className="h-4 w-4" aria-hidden />
-        <span>Search…</span>
-        <kbd className="ml-8 hidden rounded border border-slate-200 px-1.5 text-[10px] dark:border-zinc-700 sm:inline">
-          ⌘K
-        </kbd>
-      </div>
+      <GlobalSearch />
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="h-4 w-4" />
-        </Button>
+        <NotificationsMenu />
         <div
           className="h-8 w-8 rounded-full bg-primary-100 text-center text-xs leading-8 font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-200"
           title={user?.email}

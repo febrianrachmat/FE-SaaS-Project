@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { projectKeys } from "../hooks/use-project";
 import type { TaskPriority, TaskStatus } from "@/shared/types/domain";
 import { X } from "lucide-react";
+import { TaskAttachments, TaskComments } from "@/features/collab";
 
 type Props = {
   workspaceSlug: string;
@@ -183,6 +184,18 @@ export function TaskDetailPanel({
             </Button>
           </form>
         </div>
+
+        <TaskAttachments
+          workspaceSlug={workspaceSlug}
+          projectSlug={projectSlug}
+          taskId={taskId}
+        />
+
+        <TaskComments
+          workspaceSlug={workspaceSlug}
+          projectSlug={projectSlug}
+          taskId={taskId}
+        />
 
         <p className="text-xs text-slate-400">
           Reporter: {task.reporter?.name ?? "—"} · Updated{" "}
