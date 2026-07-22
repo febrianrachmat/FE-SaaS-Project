@@ -11,8 +11,10 @@ type BrandLogoProps = {
   priority?: boolean;
 };
 
-/** Native aspect of logo-full.png (1024×455) */
-const FULL_ASPECT = 1024 / 455;
+const LOGO_VERSION = "20260722b";
+
+/** Native aspect of cropped logo-full.png (787×254) */
+const FULL_ASPECT = 787 / 254;
 
 export function BrandLogo({
   variant = "full",
@@ -23,11 +25,14 @@ export function BrandLogo({
 }: BrandLogoProps) {
   const isIcon = variant === "icon";
   const width = isIcon ? height : Math.round(height * FULL_ASPECT);
+  const src = isIcon
+    ? `/brand/logo-icon.png?v=${LOGO_VERSION}`
+    : `/brand/logo-full.png?v=${LOGO_VERSION}`;
 
   const image = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={isIcon ? "/brand/logo-icon.png" : "/brand/logo-full.png"}
+      src={src}
       alt={APP_NAME}
       width={width}
       height={height}
