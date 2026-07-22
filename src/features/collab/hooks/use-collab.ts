@@ -45,7 +45,7 @@ export function useNotifications() {
   return useQuery({
     queryKey: collabKeys.notifications,
     queryFn: () => collabApi.notifications(),
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
   });
 }
 
@@ -53,6 +53,6 @@ export function useUnreadCount() {
   return useQuery({
     queryKey: collabKeys.unread,
     queryFn: () => collabApi.unreadCount(),
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
   });
 }
