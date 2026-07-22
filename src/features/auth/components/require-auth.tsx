@@ -2,12 +2,22 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { useAuthBootstrap } from "../hooks/use-auth";
 import { useAuthStore } from "../stores/auth-store";
 import { Skeleton } from "@/shared/ui/skeleton";
 
 export function AuthBootstrap({ children }: { children: ReactNode }) {
   useAuthBootstrap();
+  const theme = useAuthStore((s) => s.user?.theme);
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    if (theme === "light" || theme === "dark" || theme === "system") {
+      setTheme(theme);
+    }
+  }, [theme, setTheme]);
+
   return <>{children}</>;
 }
 

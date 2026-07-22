@@ -20,6 +20,32 @@ export type LoginResult = {
   user: User;
 };
 
+export type UpdateProfileInput = {
+  name?: string;
+  bio?: string;
+  avatarUrl?: string | null;
+  timezone?: string;
+  locale?: string;
+  theme?: string;
+};
+
+export type ChangePasswordInput = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type NotificationPrefs = {
+  emailEnabled: boolean;
+  inAppEnabled: boolean;
+  taskAssigned: boolean;
+  taskUpdated: boolean;
+  commentAdded: boolean;
+  mention: boolean;
+  invitation: boolean;
+  dueSoon: boolean;
+  completed: boolean;
+};
+
 export const authApi = {
   register: (payload: RegisterInput) =>
     apiClient<RegisterResult>("/auth/register", {
@@ -40,6 +66,27 @@ export const authApi = {
     apiClient<LoginResult>("/auth/refresh", { method: "POST" }),
 
   me: () => apiClient<User>("/auth/me"),
+
+  updateProfile: (payload: UpdateProfileInput) =>
+    apiClient<User>("/auth/me", {
+      method: "PATCH",
+      body: payload,
+    }),
+
+  changePassword: (payload: ChangePasswordInput) =>
+    apiClient<AuthMessageResult>("/auth/change-password", {
+      method: "POST",
+      body: payload,
+    }),
+
+  notificationPrefs: () =>
+    apiClient<NotificationPrefs>("/auth/me/notification-preferences"),
+
+  updateNotificationPrefs: (payload: Partial<NotificationPrefs>) =>
+    apiClient<NotificationPrefs>("/auth/me/notification-preferences", {
+      method: "PATCH",
+      body: payload,
+    }),
 
   verifyEmail: (token: string) =>
     apiClient<{ user: User; message: string }>("/auth/verify-email", {

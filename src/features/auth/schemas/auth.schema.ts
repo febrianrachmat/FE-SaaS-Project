@@ -41,7 +41,36 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(8, "Current password is required"),
+    newPassword: z
+      .string()
+      .min(8)
+      .max(72)
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
+        "Include upper, lower, and a number",
+      ),
+    confirmPassword: z.string().min(8),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export const updateProfileSchema = z.object({
+  name: z.string().min(2).max(80),
+  bio: z.string().max(280).optional(),
+  avatarUrl: z.string().url().or(z.literal("")).optional(),
+  timezone: z.string().min(1).max(64),
+  locale: z.string().min(2).max(16),
+  theme: z.enum(["system", "light", "dark"]),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordFormInput = z.infer<typeof changePasswordSchema>;
+export type UpdateProfileFormInput = z.infer<typeof updateProfileSchema>;

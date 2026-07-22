@@ -11,10 +11,17 @@ import type {
   LoginInput,
   RegisterInput,
   ResetPasswordInput,
+  UpdateProfileFormInput,
 } from "../schemas/auth.schema";
+import type {
+  ChangePasswordInput,
+  NotificationPrefs,
+  UpdateProfileInput,
+} from "../api/auth.api";
 
 export const authKeys = {
   me: ["auth", "me"] as const,
+  notificationPrefs: ["auth", "notification-prefs"] as const,
 };
 
 export function useAuthBootstrap() {
@@ -130,5 +137,52 @@ export function useResetPassword() {
 export function useVerifyEmail() {
   return useMutation({
     mutationFn: (token: string) => authApi.verifyEmail(token),
+  });
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  const setUser = useAuthStore((s) => s.setUser);
+
+  return useMutation({
+    mutationFn: (payload: UpdateProfileInput | UpdateProfileFormInput) =>
+      authApi.updateProfile({
+        name: payload.name,
+        bio: payload.bio,
+        avatarUrl: payload.avatarUrl === "" ? null : payload.avatarUrl,
+        timezone: payload.timezone,
+        locale: payload.locale,
+        theme: payload.theme,
+      }),
+    onSuccess: (user) => {
+      setUser(user);
+      queryClient.setQueryData(authKeys.me, user);
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (payload: ChangePasswordInput) =>
+      authApi.changePassword(payload),
+  });
+}
+
+export function useNotificationPrefs() {
+  return useQuery({
+    queryKey: authKeys.notificationPrefs,
+    queryFn: () => authApi.notificationPrefs(),
+  });
+}
+
+export function useUpdateNotificationPrefs() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: Partial<NotificationPrefs>) =>
+      authApi.updateNotificationPrefs(payload),
+    onSuccess: (data) => {
+      queryClient.setQueryData(authKeys.notificationPrefs, data);
+    },
   });
 }

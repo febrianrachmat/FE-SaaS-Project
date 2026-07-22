@@ -8,6 +8,11 @@ export {
   useForgotPassword,
   useResetPassword,
   useVerifyEmail,
+  useResendVerification,
+  useUpdateProfile,
+  useChangePassword,
+  useNotificationPrefs,
+  useUpdateNotificationPrefs,
 } from "./hooks/use-auth";
 export { LoginForm } from "./components/login-form";
 export { RegisterForm } from "./components/register-form";
@@ -15,4 +20,5 @@ export { GoogleAuthButton } from "./components/google-auth-button";
 export { ForgotPasswordForm } from "./components/forgot-password-form";
 export { ResetPasswordForm } from "./components/reset-password-form";
 export { VerifyEmailPanel } from "./components/verify-email-panel";
+export { AccountSettingsPanel } from "./components/account-settings-panel";
 export { AuthBootstrap, RequireAuth } from "./components/require-auth";

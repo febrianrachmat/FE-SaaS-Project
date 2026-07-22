@@ -139,13 +139,23 @@ export function AppTopbar() {
       <GlobalSearch />
       <div className="flex items-center gap-2">
         <NotificationsMenu />
-        <div
-          className="h-8 w-8 rounded-full bg-primary-100 text-center text-xs leading-8 font-medium text-primary-700 dark:bg-primary-900 dark:text-primary-200"
-          title={user?.email}
-          aria-label={user?.name ?? "User"}
+        <Link
+          href="/app/settings"
+          className="block h-8 w-8 overflow-hidden rounded-full bg-primary-100 text-center text-xs leading-8 font-medium text-primary-700 ring-offset-2 transition hover:ring-2 hover:ring-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:bg-primary-900 dark:text-primary-200"
+          title="Account settings"
+          aria-label="Account settings"
         >
-          {initials}
-        </div>
+          {user?.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={user.avatarUrl}
+              alt=""
+              className="h-8 w-8 object-cover"
+            />
+          ) : (
+            initials
+          )}
+        </Link>
       </div>
     </header>
   );

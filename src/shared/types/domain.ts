@@ -26,9 +26,11 @@ export type User = {
   email: string;
   name: string;
   avatarUrl: string | null;
+  bio?: string | null;
   timezone: string;
   locale: string;
   theme: string;
+  hasPassword?: boolean;
   emailVerifiedAt: string | null;
   createdAt: string;
 };
