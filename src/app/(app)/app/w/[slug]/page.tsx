@@ -11,7 +11,7 @@ import { WorkspaceDashboard } from "@/features/dashboard";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { Button } from "@/shared/ui/button";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { Settings, Users, FolderKanban, CalendarDays } from "lucide-react";
+import { Settings, Users, FolderKanban, CalendarDays, Activity } from "lucide-react";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -65,6 +65,12 @@ export default function WorkspaceHomePage({ params }: PageProps) {
             <Button variant="secondary">
               <FolderKanban className="h-4 w-4" />
               Projects
+            </Button>
+          </Link>
+          <Link href={`/app/w/${slug}/activity`}>
+            <Button variant="outline">
+              <Activity className="h-4 w-4" />
+              Activity
             </Button>
           </Link>
           <Link href={`/app/w/${slug}/calendar`}>

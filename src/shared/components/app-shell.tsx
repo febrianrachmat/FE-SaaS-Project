@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   FolderKanban,
   CalendarDays,
+  Activity,
   Settings,
   PanelLeftClose,
   PanelLeft,
@@ -21,6 +22,7 @@ import { GlobalSearch, NotificationsMenu } from "@/features/collab";
 const NAV = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard },
   { href: "projects", label: "Projects", icon: FolderKanban, workspaceScoped: true },
+  { href: "activity", label: "Activity", icon: Activity, workspaceScoped: true },
   { href: "calendar", label: "Calendar", icon: CalendarDays, workspaceScoped: true },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ] as const;

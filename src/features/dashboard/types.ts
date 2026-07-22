@@ -47,6 +47,8 @@ export type DashboardOverview = {
     createdAt: string;
     actor: { id: string; name: string; avatarUrl: string | null };
     metadata: unknown;
+    project: { id: string; name: string; slug: string } | null;
+    task: { id: string; title: string } | null;
   }>;
   memberActivity: Array<{
     userId: string;
@@ -54,4 +56,19 @@ export type DashboardOverview = {
     avatarUrl: string | null;
     actions: number;
   }>;
+};
+
+export type ActivityItem = {
+  id: string;
+  action: string;
+  createdAt: string;
+  metadata: unknown;
+  actor: { id: string; name: string; avatarUrl: string | null };
+  project: { id: string; name: string; slug: string } | null;
+  task: { id: string; title: string } | null;
+};
+
+export type ActivityFeedResult = {
+  items: ActivityItem[];
+  nextCursor: string | null;
 };

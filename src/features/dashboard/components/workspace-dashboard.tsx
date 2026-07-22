@@ -24,6 +24,10 @@ import {
 import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/lib/utils";
 import { useDashboard } from "../hooks/use-dashboard";
+import {
+  activitySubject,
+  formatActivityAction,
+} from "../lib/activity-format";
 
 type Props = {
   workspaceSlug: string;
@@ -63,10 +67,6 @@ function StatCard({
       {hint ? <p className="mt-1 text-xs text-slate-400">{hint}</p> : null}
     </div>
   );
-}
-
-function formatAction(action: string) {
-  return action.toLowerCase().replaceAll("_", " ");
 }
 
 export function WorkspaceDashboard({ workspaceSlug }: Props) {
@@ -302,24 +302,44 @@ export function WorkspaceDashboard({ workspaceSlug }: Props) {
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-          <h3 className="text-sm font-semibold">Recent activity</h3>
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold">Recent activity</h3>
+            <Link
+              href={`/app/w/${workspaceSlug}/activity`}
+              className="text-xs font-medium text-primary-600 hover:underline"
+            >
+              View all
+            </Link>
+          </div>
           <ul className="mt-3 space-y-2">
             {data.recentActivity.length === 0 ? (
               <li className="text-sm text-slate-400">No recent events.</li>
             ) : (
-              data.recentActivity.map((a) => (
-                <li key={a.id} className="text-sm">
-                  <p>
-                    <span className="font-medium">{a.actor.name}</span>{" "}
-                    <span className="text-slate-500">
-                      {formatAction(a.action)}
-                    </span>
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    {format(parseISO(a.createdAt), "MMM d, HH:mm")}
-                  </p>
-                </li>
-              ))
+              data.recentActivity.map((a) => {
+                const subject = activitySubject(a);
+                return (
+                  <li key={a.id} className="text-sm">
+                    <p>
+                      <span className="font-medium">{a.actor.name}</span>{" "}
+                      <span className="text-slate-500">
+                        {formatActivityAction(a.action)}
+                      </span>
+                      {subject ? (
+                        <>
+                          {" "}
+                          <span className="font-medium text-slate-700 dark:text-zinc-200">
+                            {subject}
+                          </span>
+                        </>
+                      ) : null}
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      {format(parseISO(a.createdAt), "MMM d, HH:mm")}
+                      {a.project?.name ? ` · ${a.project.name}` : ""}
+                    </p>
+                  </li>
+                );
+              })
             )}
           </ul>
         </section>
