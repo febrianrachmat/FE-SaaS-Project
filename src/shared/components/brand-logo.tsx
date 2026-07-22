@@ -11,10 +11,10 @@ type BrandLogoProps = {
   priority?: boolean;
 };
 
-const LOGO_VERSION = "20260722b";
+const LOGO_VERSION = "20260722c";
 
-/** Native aspect of cropped logo-full.png (787×254) */
-const FULL_ASPECT = 787 / 254;
+/** Native aspect of cropped logo-full.png (786×253) */
+const FULL_ASPECT = 786 / 253;
 
 export function BrandLogo({
   variant = "full",
