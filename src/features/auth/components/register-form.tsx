@@ -8,6 +8,7 @@ import { Label } from "@/shared/ui/label";
 import { ApiError } from "@/shared/types/api";
 import { registerSchema, type RegisterInput } from "../schemas/auth.schema";
 import { useRegister } from "../hooks/use-auth";
+import { GoogleAuthButton } from "./google-auth-button";
 
 export function RegisterForm() {
   const registerMutation = useRegister();
@@ -38,6 +39,15 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={onSubmit} className="mt-8 space-y-4" noValidate>
+      <GoogleAuthButton label="Sign up with Google" />
+
+      <div className="relative py-1 text-center text-xs text-slate-400">
+        <span className="relative z-10 bg-white px-2 dark:bg-zinc-950">
+          or continue with email
+        </span>
+        <span className="absolute inset-x-0 top-1/2 border-t border-slate-200 dark:border-zinc-800" />
+      </div>
+
       <div>
         <Label htmlFor="name">Full name</Label>
         <Input

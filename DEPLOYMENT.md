@@ -41,6 +41,10 @@ Ensure the backend `FRONTEND_URL` matches the Vercel URL exactly (including `htt
 - Focus-visible rings on interactive controls
 - ARIA labels on icon-only buttons
 
+## Google sign-in
+
+Login/register use `NEXT_PUBLIC_API_URL/auth/google` (full redirect). Ensure the API has Google OAuth env vars configured.
+
 ## CI
 
 GitHub Actions: `npm ci` → lint → unit tests → production build on `main` / `develop`.

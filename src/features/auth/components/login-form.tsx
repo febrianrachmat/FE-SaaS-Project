@@ -10,6 +10,7 @@ import { Label } from "@/shared/ui/label";
 import { ApiError } from "@/shared/types/api";
 import { loginSchema, type LoginInput } from "../schemas/auth.schema";
 import { useLogin } from "../hooks/use-auth";
+import { GoogleAuthButton } from "./google-auth-button";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
@@ -59,6 +60,15 @@ export function LoginForm() {
           Password updated. Sign in with your new password.
         </p>
       ) : null}
+
+      <GoogleAuthButton />
+
+      <div className="relative py-1 text-center text-xs text-slate-400">
+        <span className="relative z-10 bg-white px-2 dark:bg-zinc-950">
+          or continue with email
+        </span>
+        <span className="absolute inset-x-0 top-1/2 border-t border-slate-200 dark:border-zinc-800" />
+      </div>
 
       <div>
         <Label htmlFor="email">Email</Label>
