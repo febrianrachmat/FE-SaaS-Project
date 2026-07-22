@@ -28,6 +28,7 @@ export function CreateProjectForm({ workspaceSlug }: Props) {
       description: "",
       icon: "📁",
       priority: "MEDIUM",
+      visibility: "WORKSPACE",
     },
   });
 
@@ -74,6 +75,17 @@ export function CreateProjectForm({ workspaceSlug }: Props) {
           <option value="HIGH">High</option>
           <option value="URGENT">Urgent</option>
           <option value="CRITICAL">Critical</option>
+        </select>
+      </div>
+      <div>
+        <Label htmlFor="visibility">Visibility</Label>
+        <select
+          id="visibility"
+          className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          {...register("visibility")}
+        >
+          <option value="WORKSPACE">Workspace — all members</option>
+          <option value="PRIVATE">Private — invited members only</option>
         </select>
       </div>
       {create.error instanceof ApiError ? (

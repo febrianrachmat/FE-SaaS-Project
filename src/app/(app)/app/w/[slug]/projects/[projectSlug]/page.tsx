@@ -1,7 +1,8 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   CreateTaskForm,
   KanbanBoard,
@@ -12,10 +13,16 @@ import {
   useToggleFavorite,
   useUpdateTask,
 } from "@/features/project";
+import {
+  TaskFilterBar,
+  type TaskFilters,
+} from "@/features/project/components/task-filter-bar";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { EmptyState } from "@/shared/ui/empty-state";
-import { ArrowLeft, LayoutGrid, List, Star } from "lucide-react";
+import { PresenceAvatars } from "@/shared/components/presence-avatars";
+import { usePresence } from "@/shared/hooks/use-presence";
+import { ArrowLeft, LayoutGrid, List, Settings, Star } from "lucide-react";
 import type { TaskStatus } from "@/shared/types/domain";
 import { cn } from "@/shared/lib/utils";
 
@@ -25,20 +32,60 @@ type Props = {
 
 export default function ProjectDetailPage({ params }: Props) {
   const { slug, projectSlug } = use(params);
+  const searchParams = useSearchParams();
   const { data: project, isLoading } = useProject(slug, projectSlug);
-  const { data: tasks, isLoading: tasksLoading } = useTasks(slug, projectSlug);
+  const [filters, setFilters] = useState<TaskFilters>({});
+  const boardFilters = {
+    priority: filters.priority,
+    q: filters.q,
+    assigneeId: filters.assigneeId,
+  };
+  const listFilters = filters;
+  const { data: tasks, isLoading: tasksLoading } = useTasks(
+    slug,
+    projectSlug,
+    listFilters,
+  );
   const favorite = useToggleFavorite(slug, projectSlug);
   const updateTask = useUpdateTask(slug, projectSlug);
+  const onlineUsers = usePresence(slug, projectSlug);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [view, setView] = useState<"board" | "list">("board");
+
+  useEffect(() => {
+    const taskId = searchParams.get("task");
+    if (taskId) setSelectedTaskId(taskId);
+  }, [searchParams]);
 
   if (isLoading || !project) {
     return <Skeleton className="h-64 w-full" />;
   }
 
+  const isArchived = Boolean(project.archivedAt);
+  const metaParts = [
+    project.description || "No description",
+    `${project.taskCount ?? 0} tasks`,
+    project.visibility === "PRIVATE" ? "Private" : "Workspace",
+    project.status.replace("_", " ").toLowerCase(),
+    project.priority.toLowerCase(),
+    project.deadline
+      ? `Due ${new Date(project.deadline).toLocaleDateString()}`
+      : null,
+    isArchived ? "Archived" : null,
+  ].filter(Boolean);
+
   return (
     <div className="flex h-[calc(100vh-3.5rem-3rem)] gap-0">
       <div className="min-w-0 flex-1 space-y-6 overflow-y-auto pr-2">
+        {project.coverUrl ? (
+          <div
+            className="-mx-1 h-28 overflow-hidden rounded-xl bg-slate-100 bg-cover bg-center dark:bg-zinc-900"
+            style={{ backgroundImage: `url(${project.coverUrl})` }}
+            role="img"
+            aria-label={`${project.name} cover`}
+          />
+        ) : null}
+
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <Link
@@ -52,12 +99,10 @@ export default function ProjectDetailPage({ params }: Props) {
               <span aria-hidden>{project.icon ?? "📁"}</span>
               {project.name}
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              {project.description || "No description"} · {project.taskCount ?? 0}{" "}
-              tasks
-            </p>
+            <p className="mt-1 text-sm text-slate-500">{metaParts.join(" · ")}</p>
           </div>
           <div className="flex items-center gap-2">
+            <PresenceAvatars users={onlineUsers} />
             <div className="flex rounded-lg border border-slate-200 p-0.5 dark:border-zinc-700">
               <Button
                 variant="ghost"
@@ -90,15 +135,30 @@ export default function ProjectDetailPage({ params }: Props) {
               />
               {project.isFavorite ? "Favorited" : "Favorite"}
             </Button>
+            <Link
+              href={`/app/w/${slug}/projects/${projectSlug}/settings`}
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900"
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Link>
           </div>
         </div>
 
         <CreateTaskForm workspaceSlug={slug} projectSlug={projectSlug} />
 
+        <TaskFilterBar
+          workspaceSlug={slug}
+          value={filters}
+          onChange={setFilters}
+          hideStatus={view === "board"}
+        />
+
         {view === "board" ? (
           <KanbanBoard
             workspaceSlug={slug}
             projectSlug={projectSlug}
+            filters={boardFilters}
             onSelectTask={setSelectedTaskId}
           />
         ) : tasksLoading ? (
@@ -121,8 +181,8 @@ export default function ProjectDetailPage({ params }: Props) {
           </div>
         ) : (
           <EmptyState
-            title="No tasks yet"
-            description="Add your first task to start tracking work."
+            title="No matching tasks"
+            description="Try clearing filters or add a new task."
           />
         )}
       </div>

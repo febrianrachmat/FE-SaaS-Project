@@ -171,6 +171,19 @@ export function useUpdateProfile() {
   });
 }
 
+export function useUploadAvatar() {
+  const queryClient = useQueryClient();
+  const setUser = useAuthStore((s) => s.setUser);
+
+  return useMutation({
+    mutationFn: (file: File) => authApi.uploadAvatar(file),
+    onSuccess: (user) => {
+      setUser(user);
+      queryClient.setQueryData(authKeys.me, user);
+    },
+  });
+}
+
 export function useChangePassword() {
   return useMutation({
     mutationFn: (payload: ChangePasswordInput) =>

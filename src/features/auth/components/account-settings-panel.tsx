@@ -21,6 +21,7 @@ import {
   useNotificationPrefs,
   useUpdateNotificationPrefs,
   useUpdateProfile,
+  useUploadAvatar,
 } from "../hooks/use-auth";
 import type { NotificationPrefs } from "../api/auth.api";
 
@@ -39,6 +40,7 @@ const PREF_LABELS: Array<{ key: keyof NotificationPrefs; label: string }> = [
 export function AccountSettingsPanel() {
   const user = useAuthStore((s) => s.user);
   const updateProfile = useUpdateProfile();
+  const uploadAvatar = useUploadAvatar();
   const changePassword = useChangePassword();
   const prefsQuery = useNotificationPrefs();
   const updatePrefs = useUpdateNotificationPrefs();
@@ -121,9 +123,57 @@ export function AccountSettingsPanel() {
             <Label htmlFor="bio">Bio</Label>
             <Input id="bio" {...profileForm.register("bio")} />
           </div>
-          <div>
-            <Label htmlFor="avatarUrl">Avatar URL</Label>
-            <Input id="avatarUrl" {...profileForm.register("avatarUrl")} />
+          <div className="space-y-3">
+            <Label>Avatar</Label>
+            <div className="flex items-center gap-4">
+              {user.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.avatarUrl}
+                  alt=""
+                  className="h-14 w-14 rounded-full object-cover ring-1 ring-slate-200 dark:ring-zinc-700"
+                />
+              ) : (
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-sm font-medium text-slate-500 dark:bg-zinc-800">
+                  {user.name.slice(0, 1).toUpperCase()}
+                </div>
+              )}
+              <div className="space-y-2">
+                <input
+                  id="avatar-file"
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="block w-full text-sm text-slate-500 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200 dark:file:bg-zinc-800 dark:file:text-zinc-200"
+                  disabled={uploadAvatar.isPending}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    uploadAvatar.mutate(file);
+                    e.target.value = "";
+                  }}
+                />
+                <p className="text-xs text-slate-400">
+                  JPEG, PNG, GIF, or WebP · max 5MB
+                </p>
+                {uploadAvatar.isPending ? (
+                  <p className="text-xs text-slate-500">Uploading…</p>
+                ) : null}
+                {uploadAvatar.isSuccess ? (
+                  <p className="text-xs text-success-600">Avatar updated.</p>
+                ) : null}
+                {uploadAvatar.error ? (
+                  <p className="text-xs text-danger-600">
+                    {uploadAvatar.error instanceof Error
+                      ? uploadAvatar.error.message
+                      : "Upload failed"}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="avatarUrl">Or paste avatar URL</Label>
+              <Input id="avatarUrl" {...profileForm.register("avatarUrl")} />
+            </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>

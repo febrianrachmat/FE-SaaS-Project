@@ -10,6 +10,7 @@ export {
   useVerifyEmail,
   useResendVerification,
   useUpdateProfile,
+  useUploadAvatar,
   useChangePassword,
   useNotificationPrefs,
   useUpdateNotificationPrefs,

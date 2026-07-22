@@ -33,6 +33,19 @@ export function useCreateComment(ws: string, ps: string, taskId: string) {
   });
 }
 
+export function useUpdateComment(ws: string, ps: string, taskId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ commentId, body }: { commentId: string; body: string }) =>
+      collabApi.updateComment(ws, ps, taskId, commentId, body),
+    onSuccess: () => {
+      void qc.invalidateQueries({
+        queryKey: collabKeys.comments(ws, ps, taskId),
+      });
+    },
+  });
+}
+
 export function useAttachments(ws: string, ps: string, taskId: string) {
   return useQuery({
     queryKey: collabKeys.attachments(ws, ps, taskId),

@@ -1,3 +1,4 @@
+import { API_URL } from "@/config/env";
 import { apiClient } from "@/shared/lib/api-client";
 import type { User } from "@/shared/types/domain";
 import type {
@@ -72,6 +73,21 @@ export const authApi = {
       method: "PATCH",
       body: payload,
     }),
+
+  uploadAvatar: async (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    const response = await fetch(`${API_URL}/auth/me/avatar`, {
+      method: "POST",
+      credentials: "include",
+      body: form,
+    });
+    const payload = await response.json();
+    if (!response.ok || !payload.success) {
+      throw new Error(payload?.error?.message ?? "Avatar upload failed");
+    }
+    return payload.data as User;
+  },
 
   changePassword: (payload: ChangePasswordInput) =>
     apiClient<AuthMessageResult>("/auth/change-password", {

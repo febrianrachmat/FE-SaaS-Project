@@ -37,6 +37,28 @@ export const workspaceApi = {
   archive: (slug: string) =>
     apiClient<Workspace>(`/workspaces/${slug}/archive`, { method: "POST" }),
 
+  unarchive: (slug: string) =>
+    apiClient<Workspace>(`/workspaces/${slug}/unarchive`, { method: "POST" }),
+
+  delete: (slug: string) =>
+    apiClient<{ message: string }>(`/workspaces/${slug}`, { method: "DELETE" }),
+
+  transfer: (slug: string, newOwnerId: string) =>
+    apiClient<Workspace>(`/workspaces/${slug}/transfer`, {
+      method: "POST",
+      body: { newOwnerId },
+    }),
+
+  updateMemberRole: (
+    slug: string,
+    memberId: string,
+    role: "GUEST" | "MEMBER" | "PROJECT_MANAGER" | "ADMIN",
+  ) =>
+    apiClient<WorkspaceMember>(`/workspaces/${slug}/members/${memberId}`, {
+      method: "PATCH",
+      body: { role },
+    }),
+
   listMembers: (slug: string) =>
     apiClient<WorkspaceMember[]>(`/workspaces/${slug}/members`),
 

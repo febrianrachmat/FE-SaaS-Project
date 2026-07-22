@@ -3,6 +3,7 @@
 import { cn } from "@/shared/lib/utils";
 import type { Task } from "../types";
 import type { TaskPriority, TaskStatus } from "@/shared/types/domain";
+import { LabelChips } from "./label-chips";
 
 const STATUS_STYLE: Record<TaskStatus, string> = {
   BACKLOG: "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300",
@@ -47,6 +48,7 @@ export function TaskRow({ task, onClick, onStatusChange }: Props) {
         <p className="truncate text-sm font-medium text-slate-900 dark:text-zinc-50">
           {task.title}
         </p>
+        <LabelChips labels={task.labels} className="mt-1" />
         <p className="mt-0.5 text-xs text-slate-400">
           {task.assignee?.name ?? "Unassigned"}
           {task.dueDate

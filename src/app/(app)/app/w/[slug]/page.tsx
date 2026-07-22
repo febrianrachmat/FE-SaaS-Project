@@ -5,6 +5,7 @@ import { use } from "react";
 import {
   InviteMemberForm,
   MembersList,
+  OnboardingChecklist,
   PendingInvitationsList,
   useWorkspace,
 } from "@/features/workspace";
@@ -88,6 +89,8 @@ export default function WorkspaceHomePage({ params }: PageProps) {
           </Link>
         </div>
       </div>
+
+      <OnboardingChecklist workspaceSlug={slug} />
 
       <WorkspaceDashboard workspaceSlug={slug} />
 

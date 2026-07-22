@@ -58,6 +58,15 @@ export type DashboardOverview = {
   }>;
 };
 
+export type MyWorkItem = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  priority: string;
+  dueDate: string | null;
+  project: { name: string; slug: string; icon: string | null };
+};
+
 export type ActivityItem = {
   id: string;
   action: string;

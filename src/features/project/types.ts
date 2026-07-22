@@ -41,6 +41,12 @@ export type TaskLabel = {
   color: string;
 };
 
+export type TaskCycle = {
+  id: string;
+  name: string;
+  status: string;
+};
+
 export type ChecklistItem = {
   id: string;
   title: string;
@@ -66,7 +72,43 @@ export type Task = {
   updatedAt: string;
   reporter?: TaskUser;
   assignee?: TaskUser | null;
+  cycle?: TaskCycle | null;
   labels?: TaskLabel[];
   checklist?: ChecklistItem[];
   subtaskCount?: number;
+};
+
+export type TaskDependencyType = "BLOCKS" | "IS_BLOCKED_BY" | "RELATES_TO";
+
+export type TaskSummary = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  dueDate: string | null;
+};
+
+export type TaskDependency = {
+  id: string;
+  fromTaskId: string;
+  toTaskId: string;
+  type: TaskDependencyType;
+  createdAt: string;
+  relatedTask: TaskSummary;
+};
+
+export type TaskDependencies = {
+  blocking: TaskDependency[];
+  blockedBy: TaskDependency[];
+  relatesTo: TaskDependency[];
+};
+
+export type RoadmapTask = Task & {
+  startDate: string;
+  project: {
+    id: string;
+    name: string;
+    slug: string;
+    icon: string | null;
+  };
 };

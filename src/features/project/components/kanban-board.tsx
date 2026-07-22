@@ -21,16 +21,23 @@ import { CSS } from "@dnd-kit/utilities";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/shared/lib/utils";
 import type { Task } from "../types";
-import type { TaskStatus } from "@/shared/types/domain";
+import type { TaskPriority, TaskStatus } from "@/shared/types/domain";
 import { projectApi } from "../api/project.api";
 import { projectKeys, useTasks } from "../hooks/use-project";
 import { KANBAN_COLUMNS, computePosition, type KanbanColumnId } from "../lib/kanban";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { LabelChips } from "./label-chips";
 
 type Props = {
   workspaceSlug: string;
   projectSlug: string;
   onSelectTask?: (taskId: string) => void;
+  filters?: {
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    q?: string;
+    assigneeId?: string;
+  };
 };
 
 function KanbanCard({
@@ -76,6 +83,7 @@ function KanbanCard({
       <p className="text-sm font-medium text-slate-900 dark:text-zinc-50">
         {task.title}
       </p>
+      <LabelChips labels={task.labels} className="mt-1.5" />
       <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
         <span>{task.priority}</span>
         <span>
@@ -144,9 +152,14 @@ export function KanbanBoard({
   workspaceSlug,
   projectSlug,
   onSelectTask,
+  filters,
 }: Props) {
   const queryClient = useQueryClient();
-  const { data: tasks, isLoading } = useTasks(workspaceSlug, projectSlug);
+  const { data: tasks, isLoading } = useTasks(
+    workspaceSlug,
+    projectSlug,
+    filters,
+  );
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -171,7 +184,11 @@ export function KanbanBoard({
   }, [tasks]);
 
   const activeTask = tasks?.find((t) => t.id === activeId) ?? null;
-  const tasksKey = projectKeys.tasks(workspaceSlug, projectSlug, "{}");
+  const tasksKey = projectKeys.tasks(
+    workspaceSlug,
+    projectSlug,
+    JSON.stringify(filters ?? {}),
+  );
 
   const moveMutation = useMutation({
     mutationFn: (payload: {

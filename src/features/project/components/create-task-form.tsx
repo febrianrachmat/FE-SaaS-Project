@@ -11,6 +11,7 @@ import {
   type CreateTaskInput,
 } from "../schemas/project.schema";
 import { useCreateTask } from "../hooks/use-project";
+import { useWorkspaceMembers } from "@/features/workspace";
 
 type Props = {
   workspaceSlug: string;
@@ -24,6 +25,7 @@ export function CreateTaskForm({
   onCreated,
 }: Props) {
   const create = useCreateTask(workspaceSlug, projectSlug);
+  const { data: members = [] } = useWorkspaceMembers(workspaceSlug);
   const {
     register,
     handleSubmit,
@@ -37,6 +39,7 @@ export function CreateTaskForm({
       status: "TODO",
       priority: "MEDIUM",
       dueDate: "",
+      assigneeId: "",
     },
   });
 
@@ -65,7 +68,7 @@ export function CreateTaskForm({
           <p className="mt-1 text-xs text-danger-600">{errors.title.message}</p>
         ) : null}
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <select
           className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900"
           {...register("status")}
@@ -87,7 +90,33 @@ export function CreateTaskForm({
           <option value="URGENT">Urgent</option>
           <option value="CRITICAL">Critical</option>
         </select>
+        <select
+          className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          {...register("assigneeId")}
+        >
+          <option value="">Unassigned</option>
+          {members.map((m) => (
+            <option key={m.userId} value={m.userId}>
+              {m.user.name}
+            </option>
+          ))}
+        </select>
         <Input type="date" {...register("dueDate")} />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Input
+          type="number"
+          min={0}
+          max={100}
+          placeholder="Story points"
+          {...register("storyPoints")}
+        />
+        <Input
+          type="number"
+          min={0}
+          placeholder="Estimate (mins)"
+          {...register("estimatedMins")}
+        />
       </div>
       {create.error instanceof ApiError ? (
         <p className="text-sm text-danger-600">{create.error.message}</p>

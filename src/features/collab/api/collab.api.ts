@@ -88,6 +88,18 @@ export const collabApi = {
       { method: "POST", body: { body } },
     ),
 
+  updateComment: (
+    ws: string,
+    ps: string,
+    taskId: string,
+    commentId: string,
+    body: string,
+  ) =>
+    apiClient<Comment>(
+      `/workspaces/${ws}/projects/${ps}/tasks/${taskId}/comments/${commentId}`,
+      { method: "PATCH", body: { body } },
+    ),
+
   deleteComment: (
     ws: string,
     ps: string,

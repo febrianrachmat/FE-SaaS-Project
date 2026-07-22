@@ -134,6 +134,85 @@ export function useRemoveMember(slug: string) {
   });
 }
 
+export function useUpdateMemberRole(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      memberId,
+      role,
+    }: {
+      memberId: string;
+      role: "GUEST" | "MEMBER" | "PROJECT_MANAGER" | "ADMIN";
+    }) => workspaceApi.updateMemberRole(slug, memberId, role),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: workspaceKeys.members(slug),
+      });
+    },
+  });
+}
+
+export function useArchiveWorkspace(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => workspaceApi.archive(slug),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: workspaceKeys.detail(slug),
+      });
+      void queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
+    },
+  });
+}
+
+export function useUnarchiveWorkspace(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => workspaceApi.unarchive(slug),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: workspaceKeys.detail(slug),
+      });
+      void queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
+    },
+  });
+}
+
+export function useTransferOwnership(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (newOwnerId: string) => workspaceApi.transfer(slug, newOwnerId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: workspaceKeys.detail(slug),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: workspaceKeys.members(slug),
+      });
+      void queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
+    },
+  });
+}
+
+export function useDeleteWorkspace(slug: string) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
+
+  return useMutation({
+    mutationFn: () => workspaceApi.delete(slug),
+    onSuccess: () => {
+      setActiveWorkspace(null);
+      void queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
+      router.push("/app");
+    },
+  });
+}
+
 export function useAcceptInvitation() {
   const queryClient = useQueryClient();
   const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);

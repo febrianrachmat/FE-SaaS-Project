@@ -5,6 +5,8 @@ import { dashboardApi } from "../api/dashboard.api";
 
 export const dashboardKeys = {
   overview: (slug: string) => ["dashboard", slug] as const,
+  myWork: (slug: string, filters?: string) =>
+    ["my-work", slug, filters ?? ""] as const,
   activity: (
     slug: string,
     filters?: { projectSlug?: string; action?: string },
@@ -21,6 +23,23 @@ export function useDashboard(workspaceSlug: string) {
   return useQuery({
     queryKey: dashboardKeys.overview(workspaceSlug),
     queryFn: () => dashboardApi.getOverview(workspaceSlug),
+    enabled: !!workspaceSlug,
+  });
+}
+
+export function useMyWork(
+  workspaceSlug: string,
+  filters?: {
+    status?: string;
+    priority?: string;
+    q?: string;
+    includeDone?: boolean;
+  },
+) {
+  const key = JSON.stringify(filters ?? {});
+  return useQuery({
+    queryKey: dashboardKeys.myWork(workspaceSlug, key),
+    queryFn: () => dashboardApi.getMyWork(workspaceSlug, filters),
     enabled: !!workspaceSlug,
   });
 }
