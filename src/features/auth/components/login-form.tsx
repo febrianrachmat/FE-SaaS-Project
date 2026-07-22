@@ -16,8 +16,8 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered");
   const reset = searchParams.get("reset") === "1";
-  const login = useLogin();
-
+  const next = searchParams.get("next") ?? "/app";
+  const login = useLogin(next);
   const {
     register,
     handleSubmit,

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { RegisterForm } from "@/features/auth";
 import { APP_NAME } from "@/config/env";
+import { Skeleton } from "@/shared/ui/skeleton";
 
 export const metadata = {
   title: "Create account",
@@ -22,7 +24,9 @@ export default function RegisterPage() {
         <p className="mt-2 text-sm text-slate-500">
           Start managing projects with FlowPilot.
         </p>
-        <RegisterForm />
+        <Suspense fallback={<Skeleton className="mt-8 h-64 w-full" />}>
+          <RegisterForm />
+        </Suspense>
         <p className="mt-6 text-center text-sm text-slate-500">
           Already have an account?{" "}
           <Link href="/login" className="text-primary-600 hover:underline">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/shared/ui/button";
@@ -11,8 +12,9 @@ import { useRegister } from "../hooks/use-auth";
 import { GoogleAuthButton } from "./google-auth-button";
 
 export function RegisterForm() {
-  const registerMutation = useRegister();
-
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next") ?? undefined;
+  const registerMutation = useRegister(next);
   const {
     register,
     handleSubmit,

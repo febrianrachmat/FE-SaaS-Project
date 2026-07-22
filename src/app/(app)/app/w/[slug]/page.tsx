@@ -5,6 +5,7 @@ import { use } from "react";
 import {
   InviteMemberForm,
   MembersList,
+  PendingInvitationsList,
   useWorkspace,
 } from "@/features/workspace";
 import { WorkspaceDashboard } from "@/features/dashboard";
@@ -97,7 +98,17 @@ export default function WorkspaceHomePage({ params }: PageProps) {
             Members
           </h2>
         </div>
-        {canInvite ? <InviteMemberForm slug={slug} /> : null}
+        {canInvite ? (
+          <div className="space-y-4">
+            <InviteMemberForm slug={slug} />
+            <div>
+              <h3 className="mb-2 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                Pending invitations
+              </h3>
+              <PendingInvitationsList slug={slug} />
+            </div>
+          </div>
+        ) : null}
         <MembersList slug={slug} canManage={canInvite} />
       </section>
     </div>

@@ -4,7 +4,13 @@ import type {
   InviteMemberInput,
   UpdateWorkspaceInput,
 } from "../schemas/workspace.schema";
-import type { Workspace, WorkspaceMember } from "../types";
+import type {
+  InvitationPreview,
+  InviteResult,
+  PendingInvitation,
+  Workspace,
+  WorkspaceMember,
+} from "../types";
 
 export const workspaceApi = {
   list: () => apiClient<Workspace[]>("/workspaces"),
@@ -34,16 +40,40 @@ export const workspaceApi = {
   listMembers: (slug: string) =>
     apiClient<WorkspaceMember[]>(`/workspaces/${slug}/members`),
 
+  listInvitations: (slug: string) =>
+    apiClient<PendingInvitation[]>(`/workspaces/${slug}/invitations`),
+
   invite: (slug: string, payload: InviteMemberInput) =>
-    apiClient<{ message: string; email: string }>(
-      `/workspaces/${slug}/invitations`,
-      { method: "POST", body: payload },
+    apiClient<InviteResult>(`/workspaces/${slug}/invitations`, {
+      method: "POST",
+      body: payload,
+    }),
+
+  resendInvitation: (slug: string, invitationId: string) =>
+    apiClient<{
+      message: string;
+      email: string;
+      inviteLink: string;
+      expiresAt: string;
+    }>(`/workspaces/${slug}/invitations/${invitationId}/resend`, {
+      method: "POST",
+    }),
+
+  revokeInvitation: (slug: string, invitationId: string) =>
+    apiClient<{ message: string }>(
+      `/workspaces/${slug}/invitations/${invitationId}`,
+      { method: "DELETE" },
     ),
 
   removeMember: (slug: string, memberId: string) =>
     apiClient<{ message: string }>(`/workspaces/${slug}/members/${memberId}`, {
       method: "DELETE",
     }),
+
+  previewInvitation: (token: string) =>
+    apiClient<InvitationPreview>(
+      `/invitations/preview?token=${encodeURIComponent(token)}`,
+    ),
 
   acceptInvitation: (token: string) =>
     apiClient<{ workspace: Workspace; message: string }>(

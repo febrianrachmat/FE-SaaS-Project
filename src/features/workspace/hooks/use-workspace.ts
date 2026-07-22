@@ -14,6 +14,7 @@ export const workspaceKeys = {
   all: ["workspaces"] as const,
   detail: (slug: string) => ["workspaces", slug] as const,
   members: (slug: string) => ["workspaces", slug, "members"] as const,
+  invitations: (slug: string) => ["workspaces", slug, "invitations"] as const,
 };
 
 export function useWorkspaces() {
@@ -77,6 +78,45 @@ export function useInviteMember(slug: string) {
       void queryClient.invalidateQueries({
         queryKey: workspaceKeys.members(slug),
       });
+      void queryClient.invalidateQueries({
+        queryKey: workspaceKeys.invitations(slug),
+      });
+    },
+  });
+}
+
+export function usePendingInvitations(slug: string, enabled = true) {
+  return useQuery({
+    queryKey: workspaceKeys.invitations(slug),
+    queryFn: () => workspaceApi.listInvitations(slug),
+    enabled: !!slug && enabled,
+  });
+}
+
+export function useRevokeInvitation(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (invitationId: string) =>
+      workspaceApi.revokeInvitation(slug, invitationId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: workspaceKeys.invitations(slug),
+      });
+    },
+  });
+}
+
+export function useResendInvitation(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (invitationId: string) =>
+      workspaceApi.resendInvitation(slug, invitationId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: workspaceKeys.invitations(slug),
+      });
     },
   });
 }
@@ -95,7 +135,6 @@ export function useRemoveMember(slug: string) {
 }
 
 export function useAcceptInvitation() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
 
@@ -104,7 +143,15 @@ export function useAcceptInvitation() {
     onSuccess: (data) => {
       setActiveWorkspace(data.workspace);
       void queryClient.invalidateQueries({ queryKey: workspaceKeys.all });
-      router.push(`/app/w/${data.workspace.slug}`);
     },
+  });
+}
+
+export function useInvitationPreview(token: string) {
+  return useQuery({
+    queryKey: ["invitation-preview", token],
+    queryFn: () => workspaceApi.previewInvitation(token),
+    enabled: token.length >= 20,
+    retry: false,
   });
 }

@@ -27,3 +27,28 @@ export type WorkspaceMember = {
     avatarUrl: string | null;
   };
 };
+
+export type PendingInvitation = {
+  id: string;
+  email: string;
+  role: string;
+  expiresAt: string;
+  createdAt: string;
+  invitedBy: { id: string; name: string; email: string } | null;
+};
+
+export type InviteResult = {
+  message: string;
+  email: string;
+  inviteLink: string;
+  invitationId: string;
+  role: string;
+  expiresAt: string;
+};
+
+export type InvitationPreview = {
+  email: string;
+  role: string;
+  expiresAt: string;
+  workspace: { name: string; slug: string };
+};

@@ -62,7 +62,7 @@ export function useAuthBootstrap() {
   return query;
 }
 
-export function useLogin() {
+export function useLogin(redirectTo = "/app") {
   const router = useRouter();
   const queryClient = useQueryClient();
   const setUser = useAuthStore((s) => s.setUser);
@@ -72,20 +72,30 @@ export function useLogin() {
     onSuccess: (data) => {
       setUser(data.user);
       queryClient.setQueryData(authKeys.me, data.user);
-      router.push("/app");
+      router.push(safeInternalPath(redirectTo));
     },
   });
 }
 
-export function useRegister() {
+function safeInternalPath(path: string): string {
+  if (!path.startsWith("/") || path.startsWith("//")) return "/app";
+  return path;
+}
+
+export function useRegister(redirectAfterLogin?: string) {
   const router = useRouter();
 
   return useMutation({
     mutationFn: (payload: RegisterInput) => authApi.register(payload),
     onSuccess: (data) => {
       const needsVerify = /verify/i.test(data.message);
+      const next = redirectAfterLogin
+        ? `&next=${encodeURIComponent(redirectAfterLogin)}`
+        : "";
       router.push(
-        needsVerify ? "/login?registered=verify" : "/login?registered=1",
+        needsVerify
+          ? `/login?registered=verify${next}`
+          : `/login?registered=1${next}`,
       );
     },
   });
