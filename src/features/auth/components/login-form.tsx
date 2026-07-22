@@ -48,7 +48,7 @@ export function LoginForm() {
           className="rounded-lg border border-success-500/30 bg-success-500/10 px-3 py-2 text-sm text-success-600"
           role="status"
         >
-          Account created. Check your email to verify, then sign in.
+          Account created. You can sign in now.
         </p>
       ) : null}
       {reset ? (
