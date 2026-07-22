@@ -19,3 +19,18 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+
+  smoke-production:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    needs: lint-test-build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Smoke live web + API
+        env:
+          SMOKE_WEB_URL: https://flowpilot-drab.vercel.app
+          SMOKE_API_URL: https://flowpilot.opsctrl.dev/v1
+        run: node ./scripts/smoke-check.mjs
