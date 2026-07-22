@@ -73,17 +73,20 @@ export function TaskAttachments({
               className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-zinc-800"
             >
               <a
-                href={collabApi.downloadUrl(
-                  workspaceSlug,
-                  projectSlug,
-                  taskId,
-                  a.id,
-                )}
+                href={
+                  a.url ??
+                  collabApi.downloadUrl(
+                    workspaceSlug,
+                    projectSlug,
+                    taskId,
+                    a.id,
+                  )
+                }
                 className="min-w-0 truncate text-primary-600 hover:underline"
                 target="_blank"
                 rel="noreferrer"
               >
-                {a.isImage ? "🖼️ " : "📄 "}
+                {a.isImage ? "Image · " : "File · "}
                 {a.fileName}
               </a>
               <Button

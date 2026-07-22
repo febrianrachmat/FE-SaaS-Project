@@ -32,6 +32,8 @@ export type Attachment = {
   sizeBytes: number;
   createdAt: string;
   isImage: boolean;
+  url?: string | null;
+  storageDriver?: "local" | "s3";
   uploadedBy: { id: string; name: string; email: string };
 };
 
