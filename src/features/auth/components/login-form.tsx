@@ -14,7 +14,7 @@ import { GoogleAuthButton } from "./google-auth-button";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
-  const registered = searchParams.get("registered") === "1";
+  const registered = searchParams.get("registered");
   const reset = searchParams.get("reset") === "1";
   const login = useLogin();
 
@@ -44,12 +44,21 @@ export function LoginForm() {
 
   return (
     <form onSubmit={onSubmit} className="mt-8 space-y-4" noValidate>
-      {registered ? (
+      {registered === "1" ? (
         <p
           className="rounded-lg border border-success-500/30 bg-success-500/10 px-3 py-2 text-sm text-success-600"
           role="status"
         >
           Account created. You can sign in now.
+        </p>
+      ) : null}
+      {registered === "verify" ? (
+        <p
+          className="rounded-lg border border-primary-500/30 bg-primary-500/10 px-3 py-2 text-sm text-primary-700 dark:text-primary-300"
+          role="status"
+        >
+          Account created. Check your inbox for a verification link before
+          signing in.
         </p>
       ) : null}
       {reset ? (

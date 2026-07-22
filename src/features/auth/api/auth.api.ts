@@ -53,6 +53,12 @@ export const authApi = {
       body: payload,
     }),
 
+  resendVerification: (email: string) =>
+    apiClient<AuthMessageResult>("/auth/resend-verification", {
+      method: "POST",
+      body: { email },
+    }),
+
   resetPassword: (payload: Pick<ResetPasswordInput, "token" | "password">) =>
     apiClient<AuthMessageResult>("/auth/reset-password", {
       method: "POST",

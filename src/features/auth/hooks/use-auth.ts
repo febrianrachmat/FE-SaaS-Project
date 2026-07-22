@@ -75,8 +75,11 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: (payload: RegisterInput) => authApi.register(payload),
-    onSuccess: () => {
-      router.push("/login?registered=1");
+    onSuccess: (data) => {
+      const needsVerify = /verify/i.test(data.message);
+      router.push(
+        needsVerify ? "/login?registered=verify" : "/login?registered=1",
+      );
     },
   });
 }
@@ -100,6 +103,12 @@ export function useForgotPassword() {
   return useMutation({
     mutationFn: (payload: ForgotPasswordInput) =>
       authApi.forgotPassword(payload),
+  });
+}
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: (email: string) => authApi.resendVerification(email),
   });
 }
 
