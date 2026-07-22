@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="FlowPilot">
+  <defs>
+    <linearGradient id="g" x1="16" y1="12" x2="112" y2="116" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#35B7FF"/>
+      <stop offset=".42" stop-color="#0A66FF"/>
+      <stop offset="1" stop-color="#050E24"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Continuous flow frame: top → right arrow -->
+  <path fill="url(#g)" d="M30 34c0-8.3 6.7-15 15-15h38c8.3 0 15 6.7 15 15v22c0 2.3-2.7 3.5-4.4 2.1L83 49.3A6 6 0 0 1 81 44.7V34c0-3.3-2.7-6-6-6H49c-3.3 0-6 2.7-6 6v4.8c0 1.9-.9 3.7-2.4 4.8L32 52.1c-1.7 1.4-4.4.2-4.4-2.1V34Z"/>
+
+  <!-- Continuous flow frame: bottom → left arrow -->
+  <path fill="url(#g)" d="M98 94c0 8.3-6.7 15-15 15H45c-8.3 0-15-6.7-15-15V72c0-2.3 2.7-3.5 4.4-2.1L45 78.7a6 6 0 0 1 2 4.6V94c0 3.3 2.7 6 6 6h26c3.3 0 6-2.7 6-6v-4.8c0-1.9.9-3.7 2.4-4.8L96 75.9c1.7-1.4 4.4-.2 4.4 2.1V94Z"/>
+
+  <!-- FP monogram -->
+  <path fill="url(#g)" d="M44 38h26.5c13.6 0 22.5 8.1 22.5 21.2S84.1 80.5 70.8 80.5H55v17.8c0 1.8-1.4 3.2-3.2 3.2h-4.6c-1.8 0-3.2-1.4-3.2-3.2V41.2C44 39.4 45.4 38 47.2 38H44Zm11 10.2v21.1h14.1c6.8 0 11-3.8 11-10.5s-4.2-10.6-11.2-10.6H55Z"/>
+</svg>

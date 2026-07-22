@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { Button } from "@/shared/ui/button";
-import { APP_NAME, APP_TAGLINE } from "@/config/env";
+import { BrandLogo } from "@/shared/components/brand-logo";
+import { APP_TAGLINE } from "@/config/env";
 
 const easeOut = [0.22, 1, 0.36, 1] as const;
 
@@ -21,9 +22,7 @@ export function LandingPage() {
     <div className="min-h-screen bg-[#f4f7fb] text-slate-900">
       <header className="absolute inset-x-0 top-0 z-20">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
-          <span className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-slate-900">
-            {APP_NAME}
-          </span>
+          <BrandLogo height={32} priority />
           <div className="flex items-center gap-2">
             <Link href="/login">
               <Button variant="ghost">Sign in</Button>
@@ -55,17 +54,16 @@ export function LandingPage() {
         </motion.div>
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-center px-6 pb-16 pt-28">
-          <motion.p
-            className="font-[family-name:var(--font-display)] text-5xl font-bold tracking-tight text-slate-900 sm:text-6xl md:text-7xl"
+          <motion.div
             custom={0}
             variants={fadeUp}
             initial="hidden"
             animate="show"
           >
-            {APP_NAME}
-          </motion.p>
+            <BrandLogo href={null} height={72} priority />
+          </motion.div>
           <motion.h1
-            className="mt-4 max-w-xl text-2xl font-medium tracking-tight text-slate-800 sm:text-3xl"
+            className="mt-5 max-w-xl text-2xl font-medium tracking-tight text-slate-800 sm:text-3xl"
             custom={1}
             variants={fadeUp}
             initial="hidden"
@@ -221,9 +219,7 @@ export function LandingPage() {
 
       <footer className="border-t border-slate-200 bg-[#f4f7fb]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6 text-sm text-slate-500">
-          <span className="font-[family-name:var(--font-display)] font-semibold text-slate-700">
-            {APP_NAME}
-          </span>
+          <BrandLogo height={24} />
           <span>© {new Date().getFullYear()}</span>
         </div>
       </footer>

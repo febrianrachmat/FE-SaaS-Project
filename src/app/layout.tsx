@@ -22,6 +22,13 @@ export const metadata: Metadata = {
     template: `%s · ${APP_NAME}`,
   },
   description: APP_TAGLINE,
+  icons: {
+    icon: [
+      { url: "/brand/logo-icon.png", type: "image/png", sizes: "1024x1024" },
+      { url: "/brand/logo-icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [{ url: "/brand/logo-icon.png", sizes: "180x180" }],
+  },
 };
 
 export default function RootLayout({

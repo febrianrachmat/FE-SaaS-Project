@@ -31,6 +31,7 @@ export type User = {
   locale: string;
   theme: string;
   hasPassword?: boolean;
+  systemRole?: "USER" | "SYSTEM_ADMIN";
   emailVerifiedAt: string | null;
   createdAt: string;
 };

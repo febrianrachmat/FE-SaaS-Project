@@ -10,10 +10,11 @@ import {
   PanelLeftClose,
   PanelLeft,
   LogOut,
+  Shield,
 } from "lucide-react";
 import { useUiStore } from "@/shared/stores/ui-store";
 import { cn } from "@/shared/lib/utils";
-import { APP_NAME } from "@/config/env";
+import { BrandLogo } from "@/shared/components/brand-logo";
 import { Button } from "@/shared/ui/button";
 import { useAuthStore, useLogout } from "@/features/auth";
 import { WorkspaceSwitcher, useWorkspaceStore } from "@/features/workspace";
@@ -31,6 +32,8 @@ export function AppSidebar() {
   const { sidebarCollapsed, toggleSidebar } = useUiStore();
   const logout = useLogout();
   const activeSlug = useWorkspaceStore((s) => s.activeSlug);
+  const user = useAuthStore((s) => s.user);
+  const isSystemAdmin = user?.systemRole === "SYSTEM_ADMIN";
 
   return (
     <aside
@@ -39,16 +42,16 @@ export function AppSidebar() {
         sidebarCollapsed ? "w-[72px]" : "w-60",
       )}
     >
-      <div className="flex h-14 items-center justify-between px-3">
+      <div
+        className={cn(
+          "flex h-14 items-center px-3",
+          sidebarCollapsed ? "justify-center" : "justify-between",
+        )}
+      >
         {!sidebarCollapsed ? (
-          <Link
-            href="/app"
-            className="text-base font-semibold tracking-tight text-primary-600"
-          >
-            {APP_NAME}
-          </Link>
+          <BrandLogo href="/app" height={26} />
         ) : (
-          <span className="mx-auto text-sm font-bold text-primary-600">FP</span>
+          <BrandLogo href="/app" variant="icon" height={28} />
         )}
         <Button
           variant="ghost"
@@ -100,6 +103,20 @@ export function AppSidebar() {
           </Link>
           );
         })}
+        {isSystemAdmin ? (
+          <Link
+            href="/app/admin"
+            aria-label="Admin"
+            title="Admin"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-50",
+              sidebarCollapsed && "justify-center px-0",
+            )}
+          >
+            <Shield className="h-4 w-4 shrink-0" aria-hidden />
+            {!sidebarCollapsed ? <span>Admin</span> : null}
+          </Link>
+        ) : null}
       </nav>
 
       <div className="border-t border-slate-200 p-2 dark:border-zinc-800">
