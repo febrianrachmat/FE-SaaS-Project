@@ -32,20 +32,28 @@ type Props = {
   workspaceSlug: string;
   projectSlug: string;
   onSelectTask?: (taskId: string) => void;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (taskId: string) => void;
   filters?: {
     status?: TaskStatus;
     priority?: TaskPriority;
     q?: string;
     assigneeId?: string;
+    labelId?: string;
+    cycleId?: string;
   };
 };
 
 function KanbanCard({
   task,
   onSelect,
+  selected,
+  onToggleSelect,
 }: {
   task: Task;
   onSelect?: () => void;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }) {
   const {
     attributes,
@@ -64,25 +72,44 @@ function KanbanCard({
         transition,
       }}
       className={cn(
-        "cursor-grab rounded-xl border border-slate-200 bg-white p-3 shadow-sm active:cursor-grabbing dark:border-zinc-700 dark:bg-zinc-900",
+        "rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-900",
         isDragging && "opacity-40",
+        selected && "border-primary-400 ring-1 ring-primary-300",
       )}
-      {...attributes}
-      {...listeners}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onSelect?.();
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-label={`Open task ${task.title}`}
     >
-      <p className="text-sm font-medium text-slate-900 dark:text-zinc-50">
-        {task.title}
-      </p>
+      <div className="mb-2 flex items-start gap-2">
+        <input
+          type="checkbox"
+          className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-primary-600"
+          checked={Boolean(selected)}
+          onChange={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.();
+          }}
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          aria-label={`Select ${task.title}`}
+        />
+        <div
+          className="min-w-0 flex-1 cursor-grab active:cursor-grabbing"
+          {...attributes}
+          {...listeners}
+          onClick={onSelect}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onSelect?.();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={`Open task ${task.title}`}
+        >
+          <p className="text-sm font-medium text-slate-900 dark:text-zinc-50">
+            {task.title}
+          </p>
+        </div>
+      </div>
       <LabelChips labels={task.labels} className="mt-1.5" />
       <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400">
         <span>{task.priority}</span>
@@ -104,11 +131,15 @@ function KanbanColumn({
   label,
   tasks,
   onSelectTask,
+  selectedIds,
+  onToggleSelect,
 }: {
   id: KanbanColumnId;
   label: string;
   tasks: Task[];
   onSelectTask?: (taskId: string) => void;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (taskId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
@@ -140,6 +171,8 @@ function KanbanColumn({
               key={task.id}
               task={task}
               onSelect={() => onSelectTask?.(task.id)}
+              selected={selectedIds?.has(task.id)}
+              onToggleSelect={() => onToggleSelect?.(task.id)}
             />
           ))}
         </div>
@@ -152,6 +185,8 @@ export function KanbanBoard({
   workspaceSlug,
   projectSlug,
   onSelectTask,
+  selectedIds,
+  onToggleSelect,
   filters,
 }: Props) {
   const queryClient = useQueryClient();
@@ -295,6 +330,8 @@ export function KanbanBoard({
             label={col.label}
             tasks={columns[col.id]}
             onSelectTask={onSelectTask}
+            selectedIds={selectedIds}
+            onToggleSelect={onToggleSelect}
           />
         ))}
       </div>

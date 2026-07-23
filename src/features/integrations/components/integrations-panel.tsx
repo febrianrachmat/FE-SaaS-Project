@@ -145,14 +145,20 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
             />
           </div>
           <div>
-            <Label htmlFor="webhook-secret">Secret (optional)</Label>
+            <Label htmlFor="webhook-secret">Signing secret (optional)</Label>
             <Input
               id="webhook-secret"
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
-              placeholder="Shared secret header value"
+              placeholder="Used for X-FlowPilot-Signature (HMAC-SHA256)"
               maxLength={256}
             />
+            <p className="mt-1 text-xs text-slate-500">
+              Deliveries include{" "}
+              <code className="text-[11px]">X-FlowPilot-Signature</code> over{" "}
+              <code className="text-[11px]">timestamp.body</code>, with up to 3
+              retries on 5xx/429.
+            </p>
           </div>
           <fieldset>
             <legend className="mb-2 text-sm font-medium">Events</legend>
@@ -251,6 +257,11 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
 
       <section className="space-y-4">
         <h2 className="text-lg font-medium">API keys</h2>
+        <p className="text-sm text-slate-500">
+          Authenticate workspace API calls with header{" "}
+          <code className="text-[11px]">X-Api-Key: fp_live_…</code>. Keys are
+          scoped to this workspace and use the creator&apos;s permissions.
+        </p>
 
         <form
           className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"

@@ -105,6 +105,8 @@ export type TaskDependencies = {
 
 export type RoadmapTask = Task & {
   startDate: string;
+  /** Task ids this task blocks (BLOCKS edges). */
+  blocksTaskIds?: string[];
   project: {
     id: string;
     name: string;

@@ -22,6 +22,7 @@ import {
   useUpdateProject,
 } from "../hooks/use-project";
 import { ProjectAccessPanel } from "./project-access-panel";
+import { ShareLinksPanel } from "./share-links-panel";
 
 type Props = {
   workspaceSlug: string;
@@ -245,6 +246,11 @@ export function ProjectSettingsPanel({
           <p className="text-sm text-danger-600">{unarchive.error.message}</p>
         ) : null}
       </section>
+
+      <ShareLinksPanel
+        workspaceSlug={workspaceSlug}
+        projectSlug={projectSlug}
+      />
 
       <section className="space-y-4 rounded-2xl border border-rose-200 bg-rose-50/60 p-6 dark:border-rose-900/50 dark:bg-rose-950/20">
         <div>

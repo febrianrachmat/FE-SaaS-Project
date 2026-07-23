@@ -98,6 +98,8 @@ export function useTasks(
     priority?: TaskPriority;
     q?: string;
     assigneeId?: string;
+    labelId?: string;
+    cycleId?: string;
   },
 ) {
   const key = JSON.stringify(filters ?? {});
@@ -177,6 +179,30 @@ export function useDeleteTask(workspaceSlug: string, projectSlug: string) {
   return useMutation({
     mutationFn: (taskId: string) =>
       projectApi.deleteTask(workspaceSlug, projectSlug, taskId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["projects", workspaceSlug, projectSlug, "tasks"],
+      });
+    },
+  });
+}
+
+export function useBulkTasks(workspaceSlug: string, projectSlug: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (
+      payload:
+        | {
+            action: "update";
+            taskIds: string[];
+            patch: {
+              status?: TaskStatus;
+              priority?: TaskPriority;
+              assigneeId?: string | null;
+            };
+          }
+        | { action: "delete"; taskIds: string[] },
+    ) => projectApi.bulkTasks(workspaceSlug, projectSlug, payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: ["projects", workspaceSlug, projectSlug, "tasks"],

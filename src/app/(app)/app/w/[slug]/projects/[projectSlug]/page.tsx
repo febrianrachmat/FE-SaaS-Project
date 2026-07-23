@@ -2,8 +2,9 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
+  BulkActionBar,
   CreateTaskForm,
   KanbanBoard,
   TaskDetailPanel,
@@ -15,6 +16,8 @@ import {
 } from "@/features/project";
 import {
   TaskFilterBar,
+  filtersFromSearchParams,
+  filtersToSearchParams,
   type TaskFilters,
 } from "@/features/project/components/task-filter-bar";
 import { Button } from "@/shared/ui/button";
@@ -33,12 +36,18 @@ type Props = {
 export default function ProjectDetailPage({ params }: Props) {
   const { slug, projectSlug } = use(params);
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const { data: project, isLoading } = useProject(slug, projectSlug);
-  const [filters, setFilters] = useState<TaskFilters>({});
+  const [filters, setFilters] = useState<TaskFilters>(() =>
+    filtersFromSearchParams(new URLSearchParams(searchParams.toString())),
+  );
   const boardFilters = {
     priority: filters.priority,
     q: filters.q,
     assigneeId: filters.assigneeId,
+    labelId: filters.labelId,
+    cycleId: filters.cycleId,
   };
   const listFilters = filters;
   const { data: tasks, isLoading: tasksLoading } = useTasks(
@@ -50,12 +59,42 @@ export default function ProjectDetailPage({ params }: Props) {
   const updateTask = useUpdateTask(slug, projectSlug);
   const onlineUsers = usePresence(slug, projectSlug);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [view, setView] = useState<"board" | "list">("board");
 
   useEffect(() => {
     const taskId = searchParams.get("task");
     if (taskId) setSelectedTaskId(taskId);
   }, [searchParams]);
+
+  useEffect(() => {
+    const next = filtersFromSearchParams(
+      new URLSearchParams(searchParams.toString()),
+    );
+    setFilters(next);
+  }, [searchParams]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [view, filters.status, filters.priority, filters.q, filters.assigneeId, filters.labelId, filters.cycleId]);
+
+  function updateFilters(next: TaskFilters) {
+    setFilters(next);
+    const params = filtersToSearchParams(next);
+    const taskId = searchParams.get("task");
+    if (taskId) params.set("task", taskId);
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }
+
+  function toggleSelect(taskId: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  }
 
   if (isLoading || !project) {
     return <Skeleton className="h-64 w-full" />;
@@ -150,7 +189,7 @@ export default function ProjectDetailPage({ params }: Props) {
         <TaskFilterBar
           workspaceSlug={slug}
           value={filters}
-          onChange={setFilters}
+          onChange={updateFilters}
           hideStatus={view === "board"}
         />
 
@@ -160,6 +199,8 @@ export default function ProjectDetailPage({ params }: Props) {
             projectSlug={projectSlug}
             filters={boardFilters}
             onSelectTask={setSelectedTaskId}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
           />
         ) : tasksLoading ? (
           <div className="space-y-2">
@@ -176,6 +217,8 @@ export default function ProjectDetailPage({ params }: Props) {
                 onStatusChange={(status: TaskStatus) =>
                   updateTask.mutate({ taskId: task.id, status })
                 }
+                selected={selectedIds.has(task.id)}
+                onToggleSelect={() => toggleSelect(task.id)}
               />
             ))}
           </div>
@@ -185,6 +228,13 @@ export default function ProjectDetailPage({ params }: Props) {
             description="Try clearing filters or add a new task."
           />
         )}
+
+        <BulkActionBar
+          workspaceSlug={slug}
+          projectSlug={projectSlug}
+          selectedIds={[...selectedIds]}
+          onClear={() => setSelectedIds(new Set())}
+        />
       </div>
 
       {selectedTaskId ? (

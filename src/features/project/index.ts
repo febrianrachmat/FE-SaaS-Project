@@ -21,6 +21,7 @@ export {
   useUpdateLabel,
   useDeleteLabel,
   useDeleteTask,
+  useBulkTasks,
   useUpdateProject,
   useArchiveProject,
   useUnarchiveProject,
@@ -30,11 +31,17 @@ export {
   useRemoveProjectMember,
 } from "./hooks/use-project";
 export { LabelChips } from "./components/label-chips";
-export { TaskFilterBar } from "./components/task-filter-bar";
+export {
+  TaskFilterBar,
+  filtersFromSearchParams,
+  filtersToSearchParams,
+} from "./components/task-filter-bar";
+export type { TaskFilters } from "./components/task-filter-bar";
 export { CreateProjectForm } from "./components/create-project-form";
 export { CreateTaskForm } from "./components/create-task-form";
 export { TaskRow, StatusBadge } from "./components/task-row";
 export { TaskDetailPanel } from "./components/task-detail-panel";
 export { TaskDependencies } from "./components/task-dependencies";
 export { KanbanBoard } from "./components/kanban-board";
+export { BulkActionBar } from "./components/bulk-action-bar";
 export { TaskCalendar } from "./components/task-calendar";

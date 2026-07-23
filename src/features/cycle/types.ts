@@ -1,3 +1,5 @@
+import type { TaskStatus } from "@/shared/types/domain";
+
 export type CycleStatus = "PLANNED" | "ACTIVE" | "COMPLETED";
 
 export type Cycle = {
@@ -11,6 +13,32 @@ export type Cycle = {
   createdAt: string;
   updatedAt: string;
   taskCount?: number;
+  doneCount?: number;
+  progress?: number;
+};
+
+export type CycleBoardTask = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  priority: string;
+  dueDate: string | null;
+  project: {
+    id: string;
+    name: string;
+    slug: string;
+    icon: string | null;
+  };
+  assignee: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  } | null;
+};
+
+export type CycleBoard = Cycle & {
+  tasksByStatus: Array<{ status: TaskStatus; count: number }>;
+  tasks: CycleBoardTask[];
 };
 
 export type CreateCycleInput = {

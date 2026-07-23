@@ -1,9 +1,41 @@
 import { apiClient } from "@/shared/lib/api-client";
-import type { CreateCycleInput, Cycle, UpdateCycleInput } from "../types";
+import type {
+  CreateCycleInput,
+  Cycle,
+  CycleBoard,
+  CycleBoardTask,
+  UpdateCycleInput,
+} from "../types";
 
 export const cycleApi = {
   list: (workspaceSlug: string) =>
     apiClient<Cycle[]>(`/workspaces/${workspaceSlug}/cycles`),
+
+  getBoard: (workspaceSlug: string, cycleId: string) =>
+    apiClient<CycleBoard>(
+      `/workspaces/${workspaceSlug}/cycles/${cycleId}/board`,
+    ),
+
+  listCandidates: (workspaceSlug: string, cycleId: string, q?: string) => {
+    const qs = q?.trim()
+      ? `?q=${encodeURIComponent(q.trim())}`
+      : "";
+    return apiClient<CycleBoardTask[]>(
+      `/workspaces/${workspaceSlug}/cycles/${cycleId}/candidates${qs}`,
+    );
+  },
+
+  addTask: (workspaceSlug: string, cycleId: string, taskId: string) =>
+    apiClient<CycleBoard>(
+      `/workspaces/${workspaceSlug}/cycles/${cycleId}/tasks`,
+      { method: "POST", body: { taskId } },
+    ),
+
+  removeTask: (workspaceSlug: string, cycleId: string, taskId: string) =>
+    apiClient<CycleBoard>(
+      `/workspaces/${workspaceSlug}/cycles/${cycleId}/tasks/${taskId}`,
+      { method: "DELETE" },
+    ),
 
   create: (workspaceSlug: string, payload: CreateCycleInput) =>
     apiClient<Cycle>(`/workspaces/${workspaceSlug}/cycles`, {

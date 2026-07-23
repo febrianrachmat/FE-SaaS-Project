@@ -27,12 +27,23 @@ type Props = {
   task: Task;
   onClick?: () => void;
   onStatusChange?: (status: TaskStatus) => void;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 };
 
-export function TaskRow({ task, onClick, onStatusChange }: Props) {
+export function TaskRow({
+  task,
+  onClick,
+  onStatusChange,
+  selected,
+  onToggleSelect,
+}: Props) {
   return (
     <div
-      className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-primary-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-primary-700"
+      className={cn(
+        "flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-primary-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-primary-700",
+        selected && "border-primary-400 ring-1 ring-primary-300",
+      )}
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") onClick?.();
@@ -40,6 +51,17 @@ export function TaskRow({ task, onClick, onStatusChange }: Props) {
       role="button"
       tabIndex={0}
     >
+      <input
+        type="checkbox"
+        className="h-3.5 w-3.5 shrink-0 accent-primary-600"
+        checked={Boolean(selected)}
+        onChange={(e) => {
+          e.stopPropagation();
+          onToggleSelect?.();
+        }}
+        onClick={(e) => e.stopPropagation()}
+        aria-label={`Select ${task.title}`}
+      />
       <span
         className={cn("h-2 w-2 shrink-0 rounded-full", PRIORITY_DOT[task.priority])}
         title={task.priority}

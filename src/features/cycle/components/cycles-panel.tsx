@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -224,14 +225,17 @@ export function CyclesPanel({ workspaceSlug }: Props) {
                 </div>
               ) : (
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0 space-y-1">
+                  <div className="min-w-0 flex-1 space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-slate-900 dark:text-zinc-50">
+                      <Link
+                        href={`/app/w/${workspaceSlug}/cycles/${cycle.id}`}
+                        className="font-medium text-slate-900 hover:text-primary-700 dark:text-zinc-50 dark:hover:text-primary-300"
+                      >
                         {cycle.name}
-                      </p>
+                      </Link>
                       <span
                         className={cn(
-                          "rounded-md px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide",
+                          "rounded-md px-2 py-0.5 text-[11px] font-medium tracking-wide uppercase",
                           STATUS_STYLES[cycle.status],
                         )}
                       >
@@ -247,11 +251,25 @@ export function CyclesPanel({ workspaceSlug }: Props) {
                       {formatDate(cycle.startDate)} →{" "}
                       {formatDate(cycle.endDate)}
                       {typeof cycle.taskCount === "number"
-                        ? ` · ${cycle.taskCount} task${cycle.taskCount === 1 ? "" : "s"}`
+                        ? ` · ${cycle.doneCount ?? 0}/${cycle.taskCount} done`
                         : null}
                     </p>
+                    {typeof cycle.progress === "number" ? (
+                      <div className="h-1.5 max-w-xs overflow-hidden rounded-full bg-slate-100 dark:bg-zinc-800">
+                        <div
+                          className="h-full rounded-full bg-primary-600"
+                          style={{ width: `${cycle.progress}%` }}
+                        />
+                      </div>
+                    ) : null}
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    <Link
+                      href={`/app/w/${workspaceSlug}/cycles/${cycle.id}`}
+                      className="inline-flex h-8 items-center rounded-lg border border-slate-200 px-3 text-sm font-medium hover:bg-slate-50 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                    >
+                      Open board
+                    </Link>
                     {cycle.status !== "ACTIVE" ? (
                       <Button
                         size="sm"

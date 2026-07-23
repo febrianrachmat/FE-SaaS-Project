@@ -123,6 +123,8 @@ export const projectApi = {
       priority?: TaskPriority;
       q?: string;
       assigneeId?: string;
+      labelId?: string;
+      cycleId?: string;
     },
   ) => {
     const search = new URLSearchParams();
@@ -130,6 +132,8 @@ export const projectApi = {
     if (params?.priority) search.set("priority", params.priority);
     if (params?.q) search.set("q", params.q);
     if (params?.assigneeId) search.set("assigneeId", params.assigneeId);
+    if (params?.labelId) search.set("labelId", params.labelId);
+    if (params?.cycleId) search.set("cycleId", params.cycleId);
     const qs = search.toString();
     return apiClient<Task[]>(
       `/workspaces/${workspaceSlug}/projects/${projectSlug}/tasks${qs ? `?${qs}` : ""}`,
@@ -200,6 +204,26 @@ export const projectApi = {
     apiClient<Task>(
       `/workspaces/${workspaceSlug}/projects/${projectSlug}/tasks/${taskId}`,
       { method: "PATCH", body: payload },
+    ),
+
+  bulkTasks: (
+    workspaceSlug: string,
+    projectSlug: string,
+    payload:
+      | {
+          action: "update";
+          taskIds: string[];
+          patch: {
+            status?: TaskStatus;
+            priority?: TaskPriority;
+            assigneeId?: string | null;
+          };
+        }
+      | { action: "delete"; taskIds: string[] },
+  ) =>
+    apiClient<{ updated: number; deleted: number }>(
+      `/workspaces/${workspaceSlug}/projects/${projectSlug}/tasks/bulk`,
+      { method: "POST", body: payload },
     ),
 
   deleteTask: (
@@ -317,4 +341,62 @@ export const projectApi = {
       `/workspaces/${workspaceSlug}/labels/${labelId}`,
       { method: "DELETE" },
     ),
+
+  listShareLinks: (workspaceSlug: string, projectSlug: string) =>
+    apiClient<
+      Array<{
+        id: string;
+        projectId: string;
+        tokenPrefix: string;
+        expiresAt: string | null;
+        revokedAt: string | null;
+        lastUsedAt: string | null;
+        createdAt: string;
+      }>
+    >(`/workspaces/${workspaceSlug}/projects/${projectSlug}/share-links`),
+
+  createShareLink: (
+    workspaceSlug: string,
+    projectSlug: string,
+    payload?: { expiresInDays?: number },
+  ) =>
+    apiClient<{
+      id: string;
+      token?: string;
+      url?: string;
+      tokenPrefix: string;
+      expiresAt: string | null;
+      createdAt: string;
+    }>(`/workspaces/${workspaceSlug}/projects/${projectSlug}/share-links`, {
+      method: "POST",
+      body: payload ?? {},
+    }),
+
+  revokeShareLink: (
+    workspaceSlug: string,
+    projectSlug: string,
+    linkId: string,
+  ) =>
+    apiClient(
+      `/workspaces/${workspaceSlug}/projects/${projectSlug}/share-links/${linkId}`,
+      { method: "DELETE" },
+    ),
+
+  resolveShareLink: (token: string) =>
+    apiClient<{
+      project: {
+        name: string;
+        description: string | null;
+        icon: string | null;
+        workspaceName: string;
+      };
+      tasks: Array<{
+        id: string;
+        title: string;
+        status: string;
+        priority: string;
+        dueDate: string | null;
+        assigneeName: string | null;
+      }>;
+    }>(`/share/${encodeURIComponent(token)}`),
 };

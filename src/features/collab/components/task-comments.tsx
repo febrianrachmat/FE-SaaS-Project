@@ -42,6 +42,26 @@ function mentionTokenFor(name: string, email: string) {
   return email.split("@")[0].toLowerCase();
 }
 
+function CommentBody({ body }: { body: string }) {
+  const parts = body.split(/(@[a-zA-Z0-9._-]+)/g);
+  return (
+    <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-zinc-300">
+      {parts.map((part, i) =>
+        part.startsWith("@") && part.length > 1 ? (
+          <span
+            key={`${part}-${i}`}
+            className="rounded bg-sky-100 px-1 py-0.5 font-medium text-sky-800 dark:bg-sky-950 dark:text-sky-300"
+          >
+            {part}
+          </span>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </p>
+  );
+}
+
 function MentionTextarea({
   workspaceSlug,
   value,
@@ -240,9 +260,7 @@ export function TaskComments({ workspaceSlug, projectSlug, taskId }: Props) {
                     </div>
                   ) : (
                     <>
-                      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700 dark:text-zinc-300">
-                        {c.body}
-                      </p>
+                      <CommentBody body={c.body} />
                       <p className="mt-1 text-[11px] text-slate-400">
                         {format(parseISO(c.createdAt), "MMM d, HH:mm")}
                         {c.updatedAt !== c.createdAt ? " · edited" : ""}

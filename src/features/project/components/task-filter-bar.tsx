@@ -6,12 +6,16 @@ import { Input } from "@/shared/ui/input";
 import type { TaskPriority, TaskStatus } from "@/shared/types/domain";
 import { useAuthStore } from "@/features/auth";
 import { useWorkspaceMembers } from "@/features/workspace";
+import { useCycles } from "@/features/cycle";
+import { useLabels } from "../hooks/use-project";
 
 export type TaskFilters = {
   status?: TaskStatus;
   priority?: TaskPriority;
   q?: string;
   assigneeId?: string;
+  labelId?: string;
+  cycleId?: string;
 };
 
 type Props = {
@@ -40,6 +44,38 @@ const PRIORITIES: TaskPriority[] = [
   "CRITICAL",
 ];
 
+export function filtersToSearchParams(filters: TaskFilters): URLSearchParams {
+  const params = new URLSearchParams();
+  if (filters.q) params.set("q", filters.q);
+  if (filters.status) params.set("status", filters.status);
+  if (filters.priority) params.set("priority", filters.priority);
+  if (filters.assigneeId) params.set("assigneeId", filters.assigneeId);
+  if (filters.labelId) params.set("labelId", filters.labelId);
+  if (filters.cycleId) params.set("cycleId", filters.cycleId);
+  return params;
+}
+
+export function filtersFromSearchParams(
+  searchParams: URLSearchParams,
+): TaskFilters {
+  const status = searchParams.get("status") as TaskStatus | null;
+  const priority = searchParams.get("priority") as TaskPriority | null;
+  return {
+    ...(searchParams.get("q") ? { q: searchParams.get("q")! } : {}),
+    ...(status && STATUSES.includes(status) ? { status } : {}),
+    ...(priority && PRIORITIES.includes(priority) ? { priority } : {}),
+    ...(searchParams.get("assigneeId")
+      ? { assigneeId: searchParams.get("assigneeId")! }
+      : {}),
+    ...(searchParams.get("labelId")
+      ? { labelId: searchParams.get("labelId")! }
+      : {}),
+    ...(searchParams.get("cycleId")
+      ? { cycleId: searchParams.get("cycleId")! }
+      : {}),
+  };
+}
+
 export function TaskFilterBar({
   workspaceSlug,
   value,
@@ -48,8 +84,15 @@ export function TaskFilterBar({
 }: Props) {
   const me = useAuthStore((s) => s.user);
   const { data: members = [] } = useWorkspaceMembers(workspaceSlug);
+  const { data: labels = [] } = useLabels(workspaceSlug);
+  const { data: cycles = [] } = useCycles(workspaceSlug);
   const hasFilters = Boolean(
-    value.status || value.priority || value.q || value.assigneeId,
+    value.status ||
+      value.priority ||
+      value.q ||
+      value.assigneeId ||
+      value.labelId ||
+      value.cycleId,
   );
 
   return (
@@ -137,6 +180,48 @@ export function TaskFilterBar({
                 {m.user.name}
               </option>
             ))}
+        </select>
+      </label>
+
+      <label className="text-xs text-slate-500">
+        Label
+        <select
+          className="mt-1 flex h-10 min-w-[140px] rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          value={value.labelId ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...value,
+              labelId: e.target.value || undefined,
+            })
+          }
+        >
+          <option value="">Any</option>
+          {labels.map((label) => (
+            <option key={label.id} value={label.id}>
+              {label.name}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="text-xs text-slate-500">
+        Cycle
+        <select
+          className="mt-1 flex h-10 min-w-[150px] rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          value={value.cycleId ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...value,
+              cycleId: e.target.value || undefined,
+            })
+          }
+        >
+          <option value="">Any</option>
+          {cycles.map((cycle) => (
+            <option key={cycle.id} value={cycle.id}>
+              {cycle.name}
+            </option>
+          ))}
         </select>
       </label>
 
