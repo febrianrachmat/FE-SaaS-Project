@@ -1,5 +1,5 @@
 import { API_URL } from "@/config/env";
-import { apiClient } from "@/shared/lib/api-client";
+import { apiClient, apiClientWithMeta } from "@/shared/lib/api-client";
 import type { CreateProjectInput, CreateTaskInput } from "../schemas/project.schema";
 import type {
   Project,
@@ -138,6 +138,34 @@ export const projectApi = {
     const qs = search.toString();
     return apiClient<Task[]>(
       `/workspaces/${workspaceSlug}/projects/${projectSlug}/tasks${qs ? `?${qs}` : ""}`,
+    );
+  },
+
+  listTasksPage: (
+    workspaceSlug: string,
+    projectSlug: string,
+    params: {
+      status?: TaskStatus;
+      priority?: TaskPriority;
+      q?: string;
+      assigneeId?: string;
+      labelId?: string;
+      cycleId?: string;
+      page: number;
+      limit?: number;
+    },
+  ) => {
+    const search = new URLSearchParams();
+    if (params.status) search.set("status", params.status);
+    if (params.priority) search.set("priority", params.priority);
+    if (params.q) search.set("q", params.q);
+    if (params.assigneeId) search.set("assigneeId", params.assigneeId);
+    if (params.labelId) search.set("labelId", params.labelId);
+    if (params.cycleId) search.set("cycleId", params.cycleId);
+    search.set("page", String(params.page));
+    search.set("limit", String(params.limit ?? 20));
+    return apiClientWithMeta<Task[]>(
+      `/workspaces/${workspaceSlug}/projects/${projectSlug}/tasks?${search.toString()}`,
     );
   },
 

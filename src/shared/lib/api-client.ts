@@ -22,6 +22,21 @@ export async function apiClient<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
+  const result = await apiClientWithMeta<T>(path, options);
+  return result.data;
+}
+
+export type PaginatedMeta = {
+  page?: number;
+  limit?: number;
+  total?: number;
+  totalPages?: number;
+};
+
+export async function apiClientWithMeta<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<{ data: T; meta: PaginatedMeta | null }> {
   const { method = "GET", body, headers, signal } = options;
 
   const response = await fetch(`${API_URL}${path}`, {
@@ -50,5 +65,8 @@ export async function apiClient<T>(
     });
   }
 
-  return payload.data as T;
+  return {
+    data: payload.data as T,
+    meta: payload.meta ?? null,
+  };
 }

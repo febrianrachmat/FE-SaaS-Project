@@ -110,6 +110,29 @@ export function useTasks(
   });
 }
 
+export function usePaginatedTasks(
+  workspaceSlug: string,
+  projectSlug: string,
+  filters: {
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    q?: string;
+    assigneeId?: string;
+    labelId?: string;
+    cycleId?: string;
+    page: number;
+    limit?: number;
+  },
+) {
+  const key = JSON.stringify(filters);
+  return useQuery({
+    queryKey: projectKeys.tasks(workspaceSlug, projectSlug, `page:${key}`),
+    queryFn: () =>
+      projectApi.listTasksPage(workspaceSlug, projectSlug, filters),
+    enabled: !!workspaceSlug && !!projectSlug,
+  });
+}
+
 export function useCreateTask(workspaceSlug: string, projectSlug: string) {
   const queryClient = useQueryClient();
   return useMutation({

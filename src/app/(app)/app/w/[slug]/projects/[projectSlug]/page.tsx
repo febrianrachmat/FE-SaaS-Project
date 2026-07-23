@@ -9,8 +9,8 @@ import {
   KanbanBoard,
   TaskDetailPanel,
   TaskRow,
+  usePaginatedTasks,
   useProject,
-  useTasks,
   useToggleFavorite,
   useUpdateTask,
 } from "@/features/project";
@@ -24,6 +24,7 @@ import {
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { EmptyState } from "@/shared/ui/empty-state";
+import { PaginationBar } from "@/shared/ui/pagination-bar";
 import { PresenceAvatars } from "@/shared/components/presence-avatars";
 import { usePresence } from "@/shared/hooks/use-presence";
 import { useWorkspaceCapabilities } from "@/features/workspace";
@@ -49,6 +50,8 @@ export default function ProjectDetailPage({ params }: Props) {
   const [filters, setFilters] = useState<TaskFilters>(() =>
     filtersFromSearchParams(new URLSearchParams(searchParams.toString())),
   );
+  const pageFromUrl = Number(searchParams.get("page") || "1");
+  const listPage = Number.isFinite(pageFromUrl) && pageFromUrl > 0 ? pageFromUrl : 1;
   const boardFilters = {
     priority: filters.priority,
     q: filters.q,
@@ -56,18 +59,20 @@ export default function ProjectDetailPage({ params }: Props) {
     labelId: filters.labelId,
     cycleId: filters.cycleId,
   };
-  const listFilters = filters;
-  const { data: tasks, isLoading: tasksLoading } = useTasks(
-    slug,
-    projectSlug,
-    listFilters,
-  );
+  const [view, setView] = useState<"board" | "list">("board");
+  const listQuery = usePaginatedTasks(slug, projectSlug, {
+    ...filters,
+    page: listPage,
+    limit: 20,
+  });
+  const tasks = view === "list" ? listQuery.data?.data : undefined;
+  const tasksLoading = view === "list" && listQuery.isLoading;
+  const listMeta = listQuery.data?.meta;
   const favorite = useToggleFavorite(slug, projectSlug);
   const updateTask = useUpdateTask(slug, projectSlug);
   const onlineUsers = usePresence(slug, projectSlug);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [view, setView] = useState<"board" | "list">("board");
 
   useEffect(() => {
     const taskId = searchParams.get("task");
@@ -83,7 +88,7 @@ export default function ProjectDetailPage({ params }: Props) {
 
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [view, filters.status, filters.priority, filters.q, filters.assigneeId, filters.labelId, filters.cycleId]);
+  }, [view, filters.status, filters.priority, filters.q, filters.assigneeId, filters.labelId, filters.cycleId, listPage]);
 
   useEffect(() => {
     writeFlag(onboardingFlagKey(slug, "visited-board"));
@@ -94,6 +99,18 @@ export default function ProjectDetailPage({ params }: Props) {
     const params = filtersToSearchParams(next);
     const taskId = searchParams.get("task");
     if (taskId) params.set("task", taskId);
+    // Reset to first page when filters change.
+    params.delete("page");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }
+
+  function setListPage(nextPage: number) {
+    const params = filtersToSearchParams(filters);
+    const taskId = searchParams.get("task");
+    if (taskId) params.set("task", taskId);
+    if (nextPage > 1) params.set("page", String(nextPage));
+    else params.delete("page");
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
@@ -239,26 +256,34 @@ export default function ProjectDetailPage({ params }: Props) {
             <Skeleton className="h-14" />
           </div>
         ) : tasks && tasks.length > 0 ? (
-          <div className="space-y-2">
-            {tasks.map((task) => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                onClick={() => setSelectedTaskId(task.id)}
-                onStatusChange={
-                  caps.canUpdateTask
-                    ? (status: TaskStatus) =>
-                        updateTask.mutate({ taskId: task.id, status })
-                    : undefined
-                }
-                selected={selectedIds.has(task.id)}
-                onToggleSelect={
-                  caps.canUpdateTask
-                    ? () => toggleSelect(task.id)
-                    : undefined
-                }
-              />
-            ))}
+          <div className="space-y-3">
+            <div className="space-y-2">
+              {tasks.map((task) => (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  onClick={() => setSelectedTaskId(task.id)}
+                  onStatusChange={
+                    caps.canUpdateTask
+                      ? (status: TaskStatus) =>
+                          updateTask.mutate({ taskId: task.id, status })
+                      : undefined
+                  }
+                  selected={selectedIds.has(task.id)}
+                  onToggleSelect={
+                    caps.canUpdateTask
+                      ? () => toggleSelect(task.id)
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
+            <PaginationBar
+              page={listMeta?.page ?? listPage}
+              totalPages={listMeta?.totalPages ?? 1}
+              total={listMeta?.total}
+              onPageChange={setListPage}
+            />
           </div>
         ) : (
           <EmptyState

@@ -1,4 +1,4 @@
-import { apiClient } from "@/shared/lib/api-client";
+import { apiClient, apiClientWithMeta } from "@/shared/lib/api-client";
 import type { ActivityFeedResult, DashboardOverview, MyWorkItem } from "../types";
 
 export const dashboardApi = {
@@ -12,6 +12,8 @@ export const dashboardApi = {
       priority?: string;
       q?: string;
       includeDone?: boolean;
+      page?: number;
+      limit?: number;
     },
   ) => {
     const search = new URLSearchParams();
@@ -19,9 +21,11 @@ export const dashboardApi = {
     if (params?.priority) search.set("priority", params.priority);
     if (params?.q) search.set("q", params.q);
     if (params?.includeDone) search.set("includeDone", "true");
+    search.set("page", String(params?.page ?? 1));
+    search.set("limit", String(params?.limit ?? 20));
     const qs = search.toString();
-    return apiClient<MyWorkItem[]>(
-      `/workspaces/${workspaceSlug}/dashboard/my-work${qs ? `?${qs}` : ""}`,
+    return apiClientWithMeta<MyWorkItem[]>(
+      `/workspaces/${workspaceSlug}/dashboard/my-work?${qs}`,
     );
   },
 

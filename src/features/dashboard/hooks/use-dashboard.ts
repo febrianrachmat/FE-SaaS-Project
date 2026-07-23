@@ -34,6 +34,8 @@ export function useMyWork(
     priority?: string;
     q?: string;
     includeDone?: boolean;
+    page?: number;
+    limit?: number;
   },
 ) {
   const key = JSON.stringify(filters ?? {});

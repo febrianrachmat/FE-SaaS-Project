@@ -7,6 +7,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Input } from "@/shared/ui/input";
 import { Button } from "@/shared/ui/button";
+import { PaginationBar } from "@/shared/ui/pagination-bar";
 import type { TaskStatus } from "@/shared/types/domain";
 import { cn } from "@/shared/lib/utils";
 
@@ -27,6 +28,7 @@ export function MyWorkPanel({ workspaceSlug }: Props) {
   const [status, setStatus] = useState<TaskStatus | "">("");
   const [priority, setPriority] = useState("");
   const [includeDone, setIncludeDone] = useState(false);
+  const [page, setPage] = useState(1);
 
   const filters = useMemo(
     () => ({
@@ -34,11 +36,23 @@ export function MyWorkPanel({ workspaceSlug }: Props) {
       ...(status ? { status } : {}),
       ...(priority ? { priority } : {}),
       ...(includeDone ? { includeDone: true } : {}),
+      page,
+      limit: 20,
     }),
-    [q, status, priority, includeDone],
+    [q, status, priority, includeDone, page],
   );
 
-  const { data: items = [], isLoading } = useMyWork(workspaceSlug, filters);
+  const { data, isLoading } = useMyWork(workspaceSlug, filters);
+  const items = data?.data ?? [];
+  const meta = data?.meta;
+
+  function resetFilters() {
+    setQ("");
+    setStatus("");
+    setPriority("");
+    setIncludeDone(false);
+    setPage(1);
+  }
 
   return (
     <div className="space-y-6">
@@ -55,7 +69,10 @@ export function MyWorkPanel({ workspaceSlug }: Props) {
         <div className="min-w-[200px] flex-1">
           <Input
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => {
+              setQ(e.target.value);
+              setPage(1);
+            }}
             placeholder="Search my tasks…"
             aria-label="Search my tasks"
           />
@@ -65,7 +82,10 @@ export function MyWorkPanel({ workspaceSlug }: Props) {
           <select
             className="mt-1 flex h-10 min-w-[140px] rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
             value={status}
-            onChange={(e) => setStatus(e.target.value as TaskStatus | "")}
+            onChange={(e) => {
+              setStatus(e.target.value as TaskStatus | "");
+              setPage(1);
+            }}
           >
             <option value="">Open</option>
             {STATUSES.map((s) => (
@@ -80,7 +100,10 @@ export function MyWorkPanel({ workspaceSlug }: Props) {
           <select
             className="mt-1 flex h-10 min-w-[130px] rounded-lg border border-slate-200 bg-white px-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
             value={priority}
-            onChange={(e) => setPriority(e.target.value)}
+            onChange={(e) => {
+              setPriority(e.target.value);
+              setPage(1);
+            }}
           >
             <option value="">All</option>
             <option value="LOW">Low</option>
@@ -94,7 +117,10 @@ export function MyWorkPanel({ workspaceSlug }: Props) {
           <input
             type="checkbox"
             checked={includeDone}
-            onChange={(e) => setIncludeDone(e.target.checked)}
+            onChange={(e) => {
+              setIncludeDone(e.target.checked);
+              setPage(1);
+            }}
             className="rounded border-slate-300"
           />
           Include done
@@ -105,12 +131,7 @@ export function MyWorkPanel({ workspaceSlug }: Props) {
             variant="ghost"
             size="sm"
             className="h-10"
-            onClick={() => {
-              setQ("");
-              setStatus("");
-              setPriority("");
-              setIncludeDone(false);
-            }}
+            onClick={resetFilters}
           >
             Clear
           </Button>
@@ -133,42 +154,50 @@ export function MyWorkPanel({ workspaceSlug }: Props) {
           }}
         />
       ) : (
-        <ul className="space-y-2">
-          {items.map((item) => (
-            <li key={item.id}>
-              <Link
-                href={`/app/w/${workspaceSlug}/projects/${item.project.slug}?task=${item.id}`}
-                className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-primary-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-primary-700"
-              >
-                <span aria-hidden className="text-lg">
-                  {item.project.icon ?? "📁"}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900 dark:text-zinc-50">
-                    {item.title}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    {item.project.name}
-                    {item.dueDate
-                      ? ` · due ${new Date(item.dueDate).toLocaleDateString()}`
-                      : ""}
-                  </p>
-                </div>
-                <span
-                  className={cn(
-                    "rounded-md px-2 py-1 text-[11px] font-medium",
-                    "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300",
-                  )}
+        <div className="space-y-3">
+          <ul className="space-y-2">
+            {items.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={`/app/w/${workspaceSlug}/projects/${item.project.slug}?task=${item.id}`}
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 transition-colors hover:border-primary-300 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-primary-700"
                 >
-                  {item.status.replaceAll("_", " ")}
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  {item.priority}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  <span aria-hidden className="text-lg">
+                    {item.project.icon ?? "📁"}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-slate-900 dark:text-zinc-50">
+                      {item.title}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      {item.project.name}
+                      {item.dueDate
+                        ? ` · due ${new Date(item.dueDate).toLocaleDateString()}`
+                        : ""}
+                    </p>
+                  </div>
+                  <span
+                    className={cn(
+                      "rounded-md px-2 py-1 text-[11px] font-medium",
+                      "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300",
+                    )}
+                  >
+                    {item.status.replaceAll("_", " ")}
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    {item.priority}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <PaginationBar
+            page={meta?.page ?? page}
+            totalPages={meta?.totalPages ?? 1}
+            total={meta?.total}
+            onPageChange={setPage}
+          />
+        </div>
       )}
     </div>
   );

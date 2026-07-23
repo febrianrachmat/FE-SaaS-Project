@@ -11,6 +11,7 @@ export {
   useCreateSampleProject,
   useToggleFavorite,
   useTasks,
+  usePaginatedTasks,
   useCreateTask,
   useUpdateTask,
   useTask,
