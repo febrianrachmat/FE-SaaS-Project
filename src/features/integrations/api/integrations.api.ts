@@ -6,6 +6,7 @@ import type {
   CreateWebhookInput,
   UpdateWebhookInput,
   Webhook,
+  WebhookDelivery,
 } from "../types";
 
 export const integrationsApi = {
@@ -32,6 +33,11 @@ export const integrationsApi = {
     apiClient<{ message: string }>(
       `/workspaces/${workspaceSlug}/webhooks/${webhookId}`,
       { method: "DELETE" },
+    ),
+
+  listWebhookDeliveries: (workspaceSlug: string, webhookId: string) =>
+    apiClient<WebhookDelivery[]>(
+      `/workspaces/${workspaceSlug}/webhooks/${webhookId}/deliveries`,
     ),
 
   listApiKeys: (workspaceSlug: string) =>

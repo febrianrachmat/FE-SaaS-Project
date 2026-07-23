@@ -23,6 +23,7 @@ async function main() {
     ['Web home', webUrl],
     ['Web login', `${webUrl}/login`],
     ['Web register', `${webUrl}/register`],
+    ['Web share page', `${webUrl}/share/fps_smoke_missing`],
   ]) {
     try {
       await check(name, url);

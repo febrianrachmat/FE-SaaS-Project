@@ -5,6 +5,7 @@ export {
   useCreateWebhook,
   useUpdateWebhook,
   useDeleteWebhook,
+  useWebhookDeliveries,
   useApiKeys,
   useCreateApiKey,
   useRevokeApiKey,
@@ -12,6 +13,7 @@ export {
 } from "./hooks/use-integrations";
 export type {
   Webhook,
+  WebhookDelivery,
   ApiKey,
   CreatedApiKey,
   CreateWebhookInput,

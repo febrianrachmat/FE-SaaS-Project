@@ -16,9 +16,10 @@ import {
   useDeleteWebhook,
   useRevokeApiKey,
   useUpdateWebhook,
+  useWebhookDeliveries,
   useWebhooks,
 } from "../hooks/use-integrations";
-import { WEBHOOK_EVENT_OPTIONS } from "../types";
+import { WEBHOOK_EVENT_OPTIONS, type Webhook } from "../types";
 
 type Props = { workspaceSlug: string };
 
@@ -30,6 +31,112 @@ function formatWhen(value: string | null) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function WebhookRow({
+  hook,
+  workspaceSlug,
+  showDeliveries,
+  onToggleDeliveries,
+  onPauseToggle,
+  onDelete,
+  pausePending,
+  deletePending,
+}: {
+  hook: Webhook;
+  workspaceSlug: string;
+  showDeliveries: boolean;
+  onToggleDeliveries: () => void;
+  onPauseToggle: () => void;
+  onDelete: () => void;
+  pausePending: boolean;
+  deletePending: boolean;
+}) {
+  const { data: deliveries = [], isLoading: deliveriesLoading } =
+    useWebhookDeliveries(workspaceSlug, hook.id, showDeliveries);
+
+  return (
+    <li className="px-4 py-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 space-y-1">
+          <p className="truncate font-medium text-slate-900 dark:text-zinc-50">
+            {hook.url}
+          </p>
+          <p className="text-xs text-slate-400">
+            {hook.events.join(", ")}
+            {hook.hasSecret ? " · secret set" : null}
+            {" · "}
+            {hook.isActive ? "active" : "paused"}
+            {" · last fired "}
+            {formatWhen(hook.lastFiredAt)}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={onToggleDeliveries}>
+            {showDeliveries ? "Hide log" : "Delivery log"}
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            disabled={pausePending}
+            onClick={onPauseToggle}
+          >
+            {hook.isActive ? "Pause" : "Resume"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-danger-600"
+            disabled={deletePending}
+            onClick={onDelete}
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+
+      {showDeliveries ? (
+        <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50/80 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+          {deliveriesLoading ? (
+            <p className="text-xs text-slate-400">Loading deliveries…</p>
+          ) : deliveries.length === 0 ? (
+            <p className="text-xs text-slate-400">
+              No delivery attempts yet.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {deliveries.map((d) => (
+                <li key={d.id} className="text-xs text-slate-600 dark:text-zinc-300">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={
+                        d.success
+                          ? "font-medium text-emerald-600"
+                          : "font-medium text-rose-600"
+                      }
+                    >
+                      {d.success ? "OK" : "Fail"}
+                    </span>
+                    <span>{d.event}</span>
+                    <span>
+                      {d.statusCode != null ? `HTTP ${d.statusCode}` : "network"}
+                    </span>
+                    <span>attempt {d.attempt}</span>
+                    <span className="text-slate-400">{formatWhen(d.createdAt)}</span>
+                  </div>
+                  {d.responseSnippet ? (
+                    <p className="mt-0.5 truncate font-mono text-[11px] text-slate-400">
+                      {d.responseSnippet}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      ) : null}
+    </li>
+  );
 }
 
 export function IntegrationsPanel({ workspaceSlug }: Props) {
@@ -64,6 +171,7 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
   const [keyName, setKeyName] = useState("");
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [deliveriesFor, setDeliveriesFor] = useState<string | null>(null);
 
   function toggleEvent(value: string) {
     setEvents((prev) =>
@@ -204,52 +312,28 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
         ) : (
           <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
             {webhooks.map((hook) => (
-              <li
+              <WebhookRow
                 key={hook.id}
-                className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-start sm:justify-between"
-              >
-                <div className="min-w-0 space-y-1">
-                  <p className="truncate font-medium text-slate-900 dark:text-zinc-50">
-                    {hook.url}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    {hook.events.join(", ")}
-                    {hook.hasSecret ? " · secret set" : null}
-                    {" · "}
-                    {hook.isActive ? "active" : "paused"}
-                    {" · last fired "}
-                    {formatWhen(hook.lastFiredAt)}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    disabled={updateWebhook.isPending}
-                    onClick={() =>
-                      updateWebhook.mutate({
-                        webhookId: hook.id,
-                        isActive: !hook.isActive,
-                      })
-                    }
-                  >
-                    {hook.isActive ? "Pause" : "Resume"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-danger-600"
-                    disabled={deleteWebhook.isPending}
-                    onClick={() => {
-                      if (window.confirm("Delete this webhook?")) {
-                        deleteWebhook.mutate(hook.id);
-                      }
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </li>
+                hook={hook}
+                workspaceSlug={workspaceSlug}
+                showDeliveries={deliveriesFor === hook.id}
+                onToggleDeliveries={() =>
+                  setDeliveriesFor((id) => (id === hook.id ? null : hook.id))
+                }
+                onPauseToggle={() =>
+                  updateWebhook.mutate({
+                    webhookId: hook.id,
+                    isActive: !hook.isActive,
+                  })
+                }
+                onDelete={() => {
+                  if (window.confirm("Delete this webhook?")) {
+                    deleteWebhook.mutate(hook.id);
+                  }
+                }}
+                pausePending={updateWebhook.isPending}
+                deletePending={deleteWebhook.isPending}
+              />
             ))}
           </ul>
         )}

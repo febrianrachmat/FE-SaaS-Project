@@ -10,6 +10,8 @@ import type {
 
 export const integrationKeys = {
   webhooks: (slug: string) => ["webhooks", slug] as const,
+  deliveries: (slug: string, webhookId: string) =>
+    ["webhooks", slug, webhookId, "deliveries"] as const,
   apiKeys: (slug: string) => ["api-keys", slug] as const,
 };
 
@@ -60,6 +62,19 @@ export function useDeleteWebhook(workspaceSlug: string) {
         queryKey: integrationKeys.webhooks(workspaceSlug),
       });
     },
+  });
+}
+
+export function useWebhookDeliveries(
+  workspaceSlug: string,
+  webhookId: string | null,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: integrationKeys.deliveries(workspaceSlug, webhookId ?? ""),
+    queryFn: () =>
+      integrationsApi.listWebhookDeliveries(workspaceSlug, webhookId!),
+    enabled: !!workspaceSlug && !!webhookId && enabled,
   });
 }
 

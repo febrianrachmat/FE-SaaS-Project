@@ -11,6 +11,17 @@ export type Webhook = {
   updatedAt: string;
 };
 
+export type WebhookDelivery = {
+  id: string;
+  webhookId: string;
+  event: string;
+  success: boolean;
+  statusCode: number | null;
+  attempt: number;
+  responseSnippet: string | null;
+  createdAt: string;
+};
+
 export type CreateWebhookInput = {
   url: string;
   secret?: string;

@@ -5,6 +5,7 @@ import {
   AppTopbar,
   MobileBottomNav,
 } from "@/shared/components/app-shell";
+import { KeyboardShortcuts } from "@/shared/components/keyboard-shortcuts";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -28,6 +29,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           </main>
         </div>
         <MobileBottomNav />
+        <KeyboardShortcuts />
       </div>
     </RequireAuth>
   );
