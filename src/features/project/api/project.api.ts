@@ -1,3 +1,4 @@
+import { API_URL } from "@/config/env";
 import { apiClient } from "@/shared/lib/api-client";
 import type { CreateProjectInput, CreateTaskInput } from "../schemas/project.schema";
 import type {
@@ -399,4 +400,42 @@ export const projectApi = {
         assigneeName: string | null;
       }>;
     }>(`/share/${encodeURIComponent(token)}`),
+
+  exportProject: async (
+    workspaceSlug: string,
+    projectSlug: string,
+    format: "csv" | "json",
+  ) => {
+    const response = await fetch(
+      `${API_URL}/workspaces/${workspaceSlug}/projects/${projectSlug}/export?format=${format}`,
+      { method: "GET", credentials: "include" },
+    );
+    if (!response.ok) {
+      let message = "Export failed";
+      try {
+        const payload = (await response.json()) as {
+          error?: { message?: string };
+        };
+        message = payload?.error?.message ?? message;
+      } catch {
+        // ignore non-JSON error bodies
+      }
+      throw new Error(message);
+    }
+
+    const blob = await response.blob();
+    const disposition = response.headers.get("Content-Disposition");
+    const matched = disposition?.match(/filename="([^"]+)"/);
+    const filename =
+      matched?.[1] ?? `${projectSlug}-export.${format === "csv" ? "csv" : "json"}`;
+
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  },
 };

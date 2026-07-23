@@ -23,6 +23,7 @@ import {
 } from "../hooks/use-project";
 import { ProjectAccessPanel } from "./project-access-panel";
 import { ShareLinksPanel } from "./share-links-panel";
+import { ProjectExportPanel } from "./project-export-panel";
 import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = {
@@ -103,6 +104,11 @@ export function ProjectSettingsPanel({
           View only — your role cannot change project settings.
         </p>
       ) : null}
+
+      <ProjectExportPanel
+        workspaceSlug={workspaceSlug}
+        projectSlug={projectSlug}
+      />
 
       {canUpdate ? (
       <form
