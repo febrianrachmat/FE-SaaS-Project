@@ -22,6 +22,7 @@ import type {
 export const authKeys = {
   me: ["auth", "me"] as const,
   notificationPrefs: ["auth", "notification-prefs"] as const,
+  sessions: ["auth", "sessions"] as const,
 };
 
 export function useAuthBootstrap() {
@@ -188,6 +189,47 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (payload: ChangePasswordInput) =>
       authApi.changePassword(payload),
+  });
+}
+
+export function useSessions() {
+  return useQuery({
+    queryKey: authKeys.sessions,
+    queryFn: async () => {
+      const data = await authApi.listSessions();
+      return data.sessions;
+    },
+  });
+}
+
+export function useRevokeSession() {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const clear = useAuthStore((s) => s.clear);
+
+  return useMutation({
+    mutationFn: (sessionId: string) => authApi.revokeSession(sessionId),
+    onSuccess: (result) => {
+      if (result.revokedCurrent) {
+        clear();
+        queryClient.removeQueries({ queryKey: authKeys.me });
+        queryClient.removeQueries({ queryKey: authKeys.sessions });
+        router.push("/login");
+        return;
+      }
+      void queryClient.invalidateQueries({ queryKey: authKeys.sessions });
+    },
+  });
+}
+
+export function useRevokeOtherSessions() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => authApi.revokeOtherSessions(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: authKeys.sessions });
+    },
   });
 }
 

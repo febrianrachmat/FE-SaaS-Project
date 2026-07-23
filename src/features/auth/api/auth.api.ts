@@ -47,6 +47,15 @@ export type NotificationPrefs = {
   completed: boolean;
 };
 
+export type AuthSession = {
+  id: string;
+  userAgent: string | null;
+  ip: string | null;
+  createdAt: string;
+  expiresAt: string;
+  isCurrent: boolean;
+};
+
 export const authApi = {
   register: (payload: RegisterInput) =>
     apiClient<RegisterResult>("/auth/register", {
@@ -93,6 +102,20 @@ export const authApi = {
     apiClient<AuthMessageResult>("/auth/change-password", {
       method: "POST",
       body: payload,
+    }),
+
+  listSessions: () =>
+    apiClient<{ sessions: AuthSession[] }>("/auth/sessions"),
+
+  revokeSession: (sessionId: string) =>
+    apiClient<{ message: string; revokedCurrent: boolean }>(
+      `/auth/sessions/${sessionId}`,
+      { method: "DELETE" },
+    ),
+
+  revokeOtherSessions: () =>
+    apiClient<{ message: string }>("/auth/sessions/revoke-others", {
+      method: "POST",
     }),
 
   notificationPrefs: () =>
