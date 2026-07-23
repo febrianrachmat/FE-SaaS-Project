@@ -25,10 +25,10 @@ export function LabelsPanel({ workspaceSlug }: Props) {
   const remove = useDeleteLabel(workspaceSlug);
 
   const [name, setName] = useState("");
-  const [color, setColor] = useState(LABEL_COLORS[0]!);
+  const [color, setColor] = useState<string>(LABEL_COLORS[0]!);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
-  const [editColor, setEditColor] = useState(LABEL_COLORS[0]!);
+  const [editColor, setEditColor] = useState<string>(LABEL_COLORS[0]!);
 
   return (
     <div className="mx-auto max-w-lg space-y-8">

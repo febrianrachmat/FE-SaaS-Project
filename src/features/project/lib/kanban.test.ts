@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { computePosition } from "./kanban.ts";
+import { computePosition } from "./kanban";
 
 describe("computePosition", () => {
   it("returns a default midpoint when column is empty", () => {

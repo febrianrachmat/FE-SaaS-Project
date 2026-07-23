@@ -8,7 +8,8 @@ import { Label } from "@/shared/ui/label";
 import { ApiError } from "@/shared/types/api";
 import {
   createTaskSchema,
-  type CreateTaskInput,
+  toCreateTaskPayload,
+  type CreateTaskFormValues,
 } from "../schemas/project.schema";
 import { useCreateTask } from "../hooks/use-project";
 import { useWorkspaceMembers } from "@/features/workspace";
@@ -31,7 +32,7 @@ export function CreateTaskForm({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CreateTaskInput>({
+  } = useForm<CreateTaskFormValues>({
     resolver: zodResolver(createTaskSchema),
     defaultValues: {
       title: "",
@@ -40,15 +41,17 @@ export function CreateTaskForm({
       priority: "MEDIUM",
       dueDate: "",
       assigneeId: "",
+      storyPoints: "",
+      estimatedMins: "",
     },
   });
 
   return (
     <form
       className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
-      onSubmit={handleSubmit(async (values) => {
+      onSubmit={handleSubmit(async (raw) => {
         try {
-          await create.mutateAsync(values);
+          await create.mutateAsync(toCreateTaskPayload(raw));
           reset();
           onCreated?.();
         } catch {

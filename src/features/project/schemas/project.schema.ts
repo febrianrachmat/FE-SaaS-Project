@@ -52,14 +52,61 @@ export const createTaskSchema = z.object({
   dueDate: z.string().optional().or(z.literal("")),
   assigneeId: z.string().uuid().optional().or(z.literal("")),
   parentId: z.string().uuid().optional().or(z.literal("")),
-  storyPoints: z
-    .union([z.literal(""), z.coerce.number().int().min(0).max(100)])
-    .optional(),
-  estimatedMins: z
-    .union([z.literal(""), z.coerce.number().int().min(0)])
-    .optional(),
+  // Keep as form-friendly unions (HTML number inputs are strings).
+  storyPoints: z.union([z.literal(""), z.string(), z.number()]).optional(),
+  estimatedMins: z.union([z.literal(""), z.string(), z.number()]).optional(),
 });
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
-export type CreateTaskInput = z.infer<typeof createTaskSchema>;
+export type CreateTaskFormValues = z.infer<typeof createTaskSchema>;
+/** API payload sent to createTask. */
+export type CreateTaskInput = {
+  title: string;
+  description?: string;
+  status?:
+    | "BACKLOG"
+    | "TODO"
+    | "IN_PROGRESS"
+    | "REVIEW"
+    | "TESTING"
+    | "DONE"
+    | "CANCELED";
+  priority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT" | "CRITICAL";
+  dueDate?: string;
+  assigneeId?: string;
+  parentId?: string;
+  storyPoints?: number;
+  estimatedMins?: number;
+};
+
+function toOptionalInt(
+  value: string | number | "" | undefined,
+  max?: number,
+): number | undefined {
+  if (value === undefined || value === "") return undefined;
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(n) || n < 0) return undefined;
+  if (max !== undefined && n > max) return undefined;
+  return n;
+}
+
+export function toCreateTaskPayload(
+  values: CreateTaskFormValues,
+): CreateTaskInput {
+  return {
+    title: values.title,
+    ...(values.description ? { description: values.description } : {}),
+    ...(values.status ? { status: values.status } : {}),
+    ...(values.priority ? { priority: values.priority } : {}),
+    ...(values.dueDate ? { dueDate: values.dueDate } : {}),
+    ...(values.assigneeId ? { assigneeId: values.assigneeId } : {}),
+    ...(values.parentId ? { parentId: values.parentId } : {}),
+    ...(toOptionalInt(values.storyPoints, 100) !== undefined
+      ? { storyPoints: toOptionalInt(values.storyPoints, 100) }
+      : {}),
+    ...(toOptionalInt(values.estimatedMins) !== undefined
+      ? { estimatedMins: toOptionalInt(values.estimatedMins) }
+      : {}),
+  };
+}
