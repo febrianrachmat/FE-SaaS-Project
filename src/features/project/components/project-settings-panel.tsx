@@ -23,6 +23,7 @@ import {
 } from "../hooks/use-project";
 import { ProjectAccessPanel } from "./project-access-panel";
 import { ShareLinksPanel } from "./share-links-panel";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = {
   workspaceSlug: string;
@@ -38,6 +39,10 @@ export function ProjectSettingsPanel({
   workspaceSlug,
   projectSlug,
 }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
+  const canUpdate = caps.canUpdateProject;
+  const canArchive = caps.canArchiveProject;
+  const canDelete = caps.canDeleteProject;
   const { data: project, isLoading } = useProject(workspaceSlug, projectSlug);
   const update = useUpdateProject(workspaceSlug, projectSlug);
   const archive = useArchiveProject(workspaceSlug, projectSlug);
@@ -93,6 +98,13 @@ export function ProjectSettingsPanel({
         </p>
       </div>
 
+      {!canUpdate ? (
+        <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+          View only — your role cannot change project settings.
+        </p>
+      ) : null}
+
+      {canUpdate ? (
       <form
         className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
         onSubmit={handleSubmit(async (values) => {
@@ -202,13 +214,17 @@ export function ProjectSettingsPanel({
           {update.isPending ? "Saving…" : "Save changes"}
         </Button>
       </form>
+      ) : null}
 
-      <ProjectAccessPanel
-        workspaceSlug={workspaceSlug}
-        projectSlug={projectSlug}
-        project={project}
-      />
+      {canUpdate ? (
+        <ProjectAccessPanel
+          workspaceSlug={workspaceSlug}
+          projectSlug={projectSlug}
+          project={project}
+        />
+      ) : null}
 
+      {canArchive ? (
       <section className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50/50 p-6 dark:border-amber-900/50 dark:bg-amber-950/20">
         <div>
           <h2 className="text-sm font-semibold text-slate-900 dark:text-zinc-50">
@@ -246,12 +262,16 @@ export function ProjectSettingsPanel({
           <p className="text-sm text-danger-600">{unarchive.error.message}</p>
         ) : null}
       </section>
+      ) : null}
 
-      <ShareLinksPanel
-        workspaceSlug={workspaceSlug}
-        projectSlug={projectSlug}
-      />
+      {canUpdate ? (
+        <ShareLinksPanel
+          workspaceSlug={workspaceSlug}
+          projectSlug={projectSlug}
+        />
+      ) : null}
 
+      {canDelete ? (
       <section className="space-y-4 rounded-2xl border border-rose-200 bg-rose-50/60 p-6 dark:border-rose-900/50 dark:bg-rose-950/20">
         <div>
           <h2 className="text-sm font-semibold text-rose-700 dark:text-rose-300">
@@ -279,6 +299,7 @@ export function ProjectSettingsPanel({
           <p className="text-sm text-danger-600">{remove.error.message}</p>
         ) : null}
       </section>
+      ) : null}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { collabApi, type Attachment } from "../api/collab.api";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { cn } from "@/shared/lib/utils";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = {
   workspaceSlug: string;
@@ -39,6 +40,7 @@ export function TaskAttachments({
   projectSlug,
   taskId,
 }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
   const { data, isLoading } = useAttachments(
     workspaceSlug,
     projectSlug,
@@ -66,32 +68,36 @@ export function TaskAttachments({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium text-slate-500">Attachments</p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => inputRef.current?.click()}
-        >
-          <Paperclip className="h-3.5 w-3.5" />
-          Upload
-        </Button>
-        <input
-          ref={inputRef}
-          type="file"
-          className="hidden"
-          accept="image/*,application/pdf,.pdf"
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            await collabApi.uploadAttachment(
-              workspaceSlug,
-              projectSlug,
-              taskId,
-              file,
-            );
-            e.target.value = "";
-            void refresh();
-          }}
-        />
+        {caps.canUploadFile ? (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => inputRef.current?.click()}
+            >
+              <Paperclip className="h-3.5 w-3.5" />
+              Upload
+            </Button>
+            <input
+              ref={inputRef}
+              type="file"
+              className="hidden"
+              accept="image/*,application/pdf,.pdf"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                await collabApi.uploadAttachment(
+                  workspaceSlug,
+                  projectSlug,
+                  taskId,
+                  file,
+                );
+                e.target.value = "";
+                void refresh();
+              }}
+            />
+          </>
+        ) : null}
       </div>
 
       {isLoading ? (
@@ -153,22 +159,24 @@ export function TaskAttachments({
                   >
                     {a.fileName}
                   </a>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Delete attachment"
-                    onClick={async () => {
-                      await collabApi.deleteAttachment(
-                        workspaceSlug,
-                        projectSlug,
-                        taskId,
-                        a.id,
-                      );
-                      void refresh();
-                    }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  {caps.canDeleteFile ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Delete attachment"
+                      onClick={async () => {
+                        await collabApi.deleteAttachment(
+                          workspaceSlug,
+                          projectSlug,
+                          taskId,
+                          a.id,
+                        );
+                        void refresh();
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  ) : null}
                 </div>
               </li>
             );

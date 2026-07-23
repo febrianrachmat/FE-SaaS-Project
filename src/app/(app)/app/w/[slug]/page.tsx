@@ -8,6 +8,7 @@ import {
   OnboardingChecklist,
   PendingInvitationsList,
   useWorkspace,
+  useWorkspaceCapabilities,
 } from "@/features/workspace";
 import { WorkspaceDashboard } from "@/features/dashboard";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -22,6 +23,7 @@ type PageProps = {
 export default function WorkspaceHomePage({ params }: PageProps) {
   const { slug } = use(params);
   const { data, isLoading, isError } = useWorkspace(slug);
+  const caps = useWorkspaceCapabilities(slug);
 
   if (isLoading) {
     return (
@@ -45,7 +47,7 @@ export default function WorkspaceHomePage({ params }: PageProps) {
     );
   }
 
-  const canInvite = data.role === "ADMIN" || data.role === "OWNER";
+  const canInvite = caps.canInvite;
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">

@@ -10,6 +10,7 @@ import {
   useUnarchiveWorkspace,
   useUpdateWorkspace,
   useWorkspace,
+  useWorkspaceCapabilities,
   useWorkspaceMembers,
 } from "@/features/workspace";
 import {
@@ -29,6 +30,7 @@ type PageProps = {
 export default function WorkspaceSettingsPage({ params }: PageProps) {
   const { slug } = use(params);
   const { data, isLoading } = useWorkspace(slug);
+  const caps = useWorkspaceCapabilities(slug);
   const { data: members = [] } = useWorkspaceMembers(slug);
   const update = useUpdateWorkspace(slug);
   const archive = useArchiveWorkspace(slug);
@@ -61,7 +63,7 @@ export default function WorkspaceSettingsPage({ params }: PageProps) {
     return <Skeleton className="h-64 w-full max-w-lg" />;
   }
 
-  const canEdit = data.role === "ADMIN" || data.role === "OWNER";
+  const canEdit = caps.canManageSettings;
   const isOwner = data.role === "OWNER";
   const isArchived = Boolean(data.archivedAt);
   const transferCandidates = members.filter(

@@ -18,6 +18,7 @@ import {
   useUpdateCycle,
 } from "../hooks/use-cycle";
 import type { Cycle, CycleStatus } from "../types";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = { workspaceSlug: string };
 
@@ -45,6 +46,8 @@ function toDateInput(value: string | null) {
 }
 
 export function CyclesPanel({ workspaceSlug }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
+  const canManage = caps.canUpdateProject;
   const { data: cycles = [], isLoading } = useCycles(workspaceSlug);
   const create = useCreateCycle(workspaceSlug);
   const update = useUpdateCycle(workspaceSlug);
@@ -81,93 +84,103 @@ export function CyclesPanel({ workspaceSlug }: Props) {
         </p>
       </div>
 
-      <form
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!name.trim()) return;
-          create.mutate(
-            {
-              name: name.trim(),
-              ...(description.trim()
-                ? { description: description.trim() }
-                : {}),
-              ...(startDate ? { startDate } : {}),
-              ...(endDate ? { endDate } : {}),
-            },
-            {
-              onSuccess: () => {
-                setName("");
-                setDescription("");
-                setStartDate("");
-                setEndDate("");
+      {canManage ? (
+        <form
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!name.trim()) return;
+            create.mutate(
+              {
+                name: name.trim(),
+                ...(description.trim()
+                  ? { description: description.trim() }
+                  : {}),
+                ...(startDate ? { startDate } : {}),
+                ...(endDate ? { endDate } : {}),
               },
-            },
-          );
-        }}
-      >
-        <div>
-          <Label htmlFor="cycle-name">New cycle</Label>
-          <Input
-            id="cycle-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Sprint 14"
-            maxLength={100}
-          />
-        </div>
-        <div>
-          <Label htmlFor="cycle-description">Description</Label>
-          <Input
-            id="cycle-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional goals or focus"
-            maxLength={2000}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+              {
+                onSuccess: () => {
+                  setName("");
+                  setDescription("");
+                  setStartDate("");
+                  setEndDate("");
+                },
+              },
+            );
+          }}
+        >
           <div>
-            <Label htmlFor="cycle-start">Start</Label>
+            <Label htmlFor="cycle-name">New cycle</Label>
             <Input
-              id="cycle-start"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              id="cycle-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Sprint 14"
+              maxLength={100}
             />
           </div>
           <div>
-            <Label htmlFor="cycle-end">End</Label>
+            <Label htmlFor="cycle-description">Description</Label>
             <Input
-              id="cycle-end"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              id="cycle-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Optional goals or focus"
+              maxLength={2000}
             />
           </div>
-        </div>
-        {create.error instanceof ApiError ? (
-          <p className="text-sm text-danger-600">{create.error.message}</p>
-        ) : null}
-        <Button type="submit" disabled={create.isPending || !name.trim()}>
-          {create.isPending ? "Creating…" : "Create cycle"}
-        </Button>
-      </form>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="cycle-start">Start</Label>
+              <Input
+                id="cycle-start"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="cycle-end">End</Label>
+              <Input
+                id="cycle-end"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+          {create.error instanceof ApiError ? (
+            <p className="text-sm text-danger-600">{create.error.message}</p>
+          ) : null}
+          <Button type="submit" disabled={create.isPending || !name.trim()}>
+            {create.isPending ? "Creating…" : "Create cycle"}
+          </Button>
+        </form>
+      ) : null}
 
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : cycles.length === 0 ? (
         <EmptyState
           title="No cycles yet"
-          description="Create a cycle to group tasks into a timeboxed sprint."
-          actionLabel="Focus create form"
-          onAction={() => {
-            const input = document.getElementById(
-              "cycle-name",
-            ) as HTMLInputElement | null;
-            input?.focus();
-            input?.scrollIntoView({ behavior: "smooth", block: "center" });
-          }}
+          description={
+            canManage
+              ? "Create a cycle to group tasks into a timeboxed sprint."
+              : "No cycles have been planned yet."
+          }
+          actionLabel={canManage ? "Focus create form" : undefined}
+          onAction={
+            canManage
+              ? () => {
+                  const input = document.getElementById(
+                    "cycle-name",
+                  ) as HTMLInputElement | null;
+                  input?.focus();
+                  input?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+              : undefined
+          }
         />
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
@@ -278,7 +291,7 @@ export function CyclesPanel({ workspaceSlug }: Props) {
                     >
                       Open board
                     </Link>
-                    {cycle.status !== "ACTIVE" ? (
+                    {canManage && cycle.status !== "ACTIVE" ? (
                       <Button
                         size="sm"
                         variant="secondary"
@@ -288,7 +301,7 @@ export function CyclesPanel({ workspaceSlug }: Props) {
                         Activate
                       </Button>
                     ) : null}
-                    {cycle.status !== "COMPLETED" ? (
+                    {canManage && cycle.status !== "COMPLETED" ? (
                       <Button
                         size="sm"
                         variant="secondary"
@@ -298,30 +311,34 @@ export function CyclesPanel({ workspaceSlug }: Props) {
                         Complete
                       </Button>
                     ) : null}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => beginEdit(cycle)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-danger-600"
-                      disabled={remove.isPending}
-                      onClick={() => {
-                        if (
-                          window.confirm(
-                            `Delete “${cycle.name}”? Tasks will be unlinked.`,
-                          )
-                        ) {
-                          remove.mutate(cycle.id);
-                        }
-                      }}
-                    >
-                      Delete
-                    </Button>
+                    {canManage ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => beginEdit(cycle)}
+                      >
+                        Edit
+                      </Button>
+                    ) : null}
+                    {canManage ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-danger-600"
+                        disabled={remove.isPending}
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              `Delete “${cycle.name}”? Tasks will be unlinked.`,
+                            )
+                          ) {
+                            remove.mutate(cycle.id);
+                          }
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               )}

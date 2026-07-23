@@ -16,10 +16,14 @@ import {
   useDeleteTemplate,
   useTemplates,
 } from "../hooks/use-templates";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = { workspaceSlug: string };
 
 export function TemplatesPanel({ workspaceSlug }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
+  const canSave = caps.canUpdateProject;
+  const canApply = caps.canCreateProject;
   const router = useRouter();
   const { data: templates = [], isLoading } = useTemplates(workspaceSlug);
   const { data: projects = [] } = useProjects(workspaceSlug);
@@ -43,29 +47,30 @@ export function TemplatesPanel({ workspaceSlug }: Props) {
         </p>
       </div>
 
-      <form
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!projectSlug || !name.trim()) return;
-          createFromProject.mutate(
-            {
-              projectSlug,
-              name: name.trim(),
-              ...(description.trim()
-                ? { description: description.trim() }
-                : {}),
-            },
-            {
-              onSuccess: () => {
-                setName("");
-                setDescription("");
-                setProjectSlug("");
+      {canSave ? (
+        <form
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!projectSlug || !name.trim()) return;
+            createFromProject.mutate(
+              {
+                projectSlug,
+                name: name.trim(),
+                ...(description.trim()
+                  ? { description: description.trim() }
+                  : {}),
               },
-            },
-          );
-        }}
-      >
+              {
+                onSuccess: () => {
+                  setName("");
+                  setDescription("");
+                  setProjectSlug("");
+                },
+              },
+            );
+          }}
+        >
         <div>
           <Label htmlFor="template-project">Create from project</Label>
           <select
@@ -123,13 +128,18 @@ export function TemplatesPanel({ workspaceSlug }: Props) {
           {createFromProject.isPending ? "Saving…" : "Save template"}
         </Button>
       </form>
+      ) : null}
 
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : templates.length === 0 ? (
         <EmptyState
           title="No templates yet"
-          description="Pick a project above to capture its tasks as a reusable template."
+          description={
+            canSave
+              ? "Pick a project above to capture its tasks as a reusable template."
+              : "No templates have been saved yet."
+          }
         />
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
@@ -157,39 +167,43 @@ export function TemplatesPanel({ workspaceSlug }: Props) {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  disabled={apply.isPending}
-                  onClick={() => {
-                    apply.mutate(
-                      { templateId: template.id },
-                      {
-                        onSuccess: (project) => {
-                          router.push(
-                            `/app/w/${workspaceSlug}/projects/${project.slug}`,
-                          );
+                {canApply ? (
+                  <Button
+                    size="sm"
+                    disabled={apply.isPending}
+                    onClick={() => {
+                      apply.mutate(
+                        { templateId: template.id },
+                        {
+                          onSuccess: (project) => {
+                            router.push(
+                              `/app/w/${workspaceSlug}/projects/${project.slug}`,
+                            );
+                          },
                         },
-                      },
-                    );
-                  }}
-                >
-                  {apply.isPending ? "Applying…" : "Apply"}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-danger-600"
-                  disabled={remove.isPending}
-                  onClick={() => {
-                    if (
-                      window.confirm(`Delete template “${template.name}”?`)
-                    ) {
-                      remove.mutate(template.id);
-                    }
-                  }}
-                >
-                  Delete
-                </Button>
+                      );
+                    }}
+                  >
+                    {apply.isPending ? "Applying…" : "Apply"}
+                  </Button>
+                ) : null}
+                {canSave ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-danger-600"
+                    disabled={remove.isPending}
+                    onClick={() => {
+                      if (
+                        window.confirm(`Delete template “${template.name}”?`)
+                      ) {
+                        remove.mutate(template.id);
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
+                ) : null}
               </div>
             </li>
           ))}

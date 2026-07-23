@@ -12,7 +12,10 @@ import {
   type CreateTaskFormValues,
 } from "../schemas/project.schema";
 import { useCreateTask } from "../hooks/use-project";
-import { useWorkspaceMembers } from "@/features/workspace";
+import {
+  useWorkspaceCapabilities,
+  useWorkspaceMembers,
+} from "@/features/workspace";
 import {
   onboardingFlagKey,
   writeFlag,
@@ -29,6 +32,7 @@ export function CreateTaskForm({
   projectSlug,
   onCreated,
 }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
   const create = useCreateTask(workspaceSlug, projectSlug);
   const { data: members = [] } = useWorkspaceMembers(workspaceSlug);
   const {
@@ -49,6 +53,8 @@ export function CreateTaskForm({
       estimatedMins: "",
     },
   });
+
+  if (!caps.canCreateTask) return null;
 
   return (
     <form

@@ -18,6 +18,7 @@ export {
   useDeleteWorkspace,
   useUpdateMemberRole,
 } from "./hooks/use-workspace";
+export { useWorkspaceCapabilities } from "./hooks/use-workspace-capabilities";
 export { CreateWorkspaceForm } from "./components/create-workspace-form";
 export { WorkspaceSwitcher } from "./components/workspace-switcher";
 export { InviteMemberForm } from "./components/invite-member-form";

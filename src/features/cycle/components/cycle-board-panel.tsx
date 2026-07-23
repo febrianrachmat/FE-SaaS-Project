@@ -18,6 +18,7 @@ import {
   useCycleCandidates,
   useRemoveCycleTask,
 } from "../hooks/use-cycle";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = {
   workspaceSlug: string;
@@ -34,6 +35,9 @@ const BOARD_COLUMNS: Array<{ id: TaskStatus; label: string }> = [
 ];
 
 export function CycleBoardPanel({ workspaceSlug, cycleId }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
+  const canManageCycle = caps.canUpdateProject;
+  const canEditTasks = caps.canUpdateTask;
   const { data: board, isLoading, isError } = useCycleBoard(
     workspaceSlug,
     cycleId,
@@ -107,16 +111,18 @@ export function CycleBoardPanel({ workspaceSlug, cycleId }: Props) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => setShowAdd((v) => !v)}
-          >
-            <Plus className="h-4 w-4" />
-            Add task
-          </Button>
-          {board.status !== "ACTIVE" ? (
+          {canEditTasks ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowAdd((v) => !v)}
+            >
+              <Plus className="h-4 w-4" />
+              Add task
+            </Button>
+          ) : null}
+          {canManageCycle && board.status !== "ACTIVE" ? (
             <Button
               type="button"
               size="sm"
@@ -126,7 +132,7 @@ export function CycleBoardPanel({ workspaceSlug, cycleId }: Props) {
               Activate
             </Button>
           ) : null}
-          {board.status !== "COMPLETED" ? (
+          {canManageCycle && board.status !== "COMPLETED" ? (
             <Button
               type="button"
               size="sm"
@@ -171,7 +177,7 @@ export function CycleBoardPanel({ workspaceSlug, cycleId }: Props) {
         </div>
       </section>
 
-      {showAdd ? (
+      {showAdd && canEditTasks ? (
         <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-medium">Add from workspace backlog</p>
@@ -230,9 +236,13 @@ export function CycleBoardPanel({ workspaceSlug, cycleId }: Props) {
       {taskCount === 0 ? (
         <EmptyState
           title="No tasks in this cycle"
-          description="Add open tasks from your projects to start planning."
-          actionLabel="Add task"
-          onAction={() => setShowAdd(true)}
+          description={
+            canEditTasks
+              ? "Add open tasks from your projects to start planning."
+              : "No tasks have been added to this cycle yet."
+          }
+          actionLabel={canEditTasks ? "Add task" : undefined}
+          onAction={canEditTasks ? () => setShowAdd(true) : undefined}
         />
       ) : (
         <div className="flex gap-3 overflow-x-auto pb-4">
@@ -269,17 +279,19 @@ export function CycleBoardPanel({ workspaceSlug, cycleId }: Props) {
                       <span className="text-[11px] text-slate-400">
                         {task.priority}
                       </span>
-                      <button
-                        type="button"
-                        className={cn(
-                          "text-[11px] text-slate-400 hover:text-danger-600",
-                          removeTask.isPending && "opacity-50",
-                        )}
-                        disabled={removeTask.isPending}
-                        onClick={() => removeTask.mutate(task.id)}
-                      >
-                        Remove
-                      </button>
+                      {canEditTasks ? (
+                        <button
+                          type="button"
+                          className={cn(
+                            "text-[11px] text-slate-400 hover:text-danger-600",
+                            removeTask.isPending && "opacity-50",
+                          )}
+                          disabled={removeTask.isPending}
+                          onClick={() => removeTask.mutate(task.id)}
+                        >
+                          Remove
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 ))}

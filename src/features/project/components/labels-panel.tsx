@@ -15,10 +15,13 @@ import {
   useUpdateLabel,
 } from "../hooks/use-project";
 import { cn } from "@/shared/lib/utils";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = { workspaceSlug: string };
 
 export function LabelsPanel({ workspaceSlug }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
+  const canManage = caps.canUpdateProject;
   const { data: labels = [], isLoading } = useLabels(workspaceSlug);
   const create = useCreateLabel(workspaceSlug);
   const update = useUpdateLabel(workspaceSlug);
@@ -41,22 +44,23 @@ export function LabelsPanel({ workspaceSlug }: Props) {
         </p>
       </div>
 
-      <form
-        className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!name.trim()) return;
-          create.mutate(
-            { name: name.trim(), color },
-            {
-              onSuccess: () => {
-                setName("");
-                setColor(LABEL_COLORS[0]!);
+      {canManage ? (
+        <form
+          className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!name.trim()) return;
+            create.mutate(
+              { name: name.trim(), color },
+              {
+                onSuccess: () => {
+                  setName("");
+                  setColor(LABEL_COLORS[0]!);
+                },
               },
-            },
-          );
-        }}
-      >
+            );
+          }}
+        >
         <div>
           <Label htmlFor="label-name">New label</Label>
           <Input
@@ -94,13 +98,18 @@ export function LabelsPanel({ workspaceSlug }: Props) {
           {create.isPending ? "Creating…" : "Create label"}
         </Button>
       </form>
+      ) : null}
 
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : labels.length === 0 ? (
         <EmptyState
           title="No labels yet"
-          description="Create labels to organize tasks across projects."
+          description={
+            canManage
+              ? "Create labels to organize tasks across projects."
+              : "No labels have been created yet."
+          }
         />
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
@@ -166,35 +175,39 @@ export function LabelsPanel({ workspaceSlug }: Props) {
                     <p className="truncate text-sm font-medium">{label.name}</p>
                   </div>
                   <div className="flex shrink-0 gap-1">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditingId(label.id);
-                        setEditName(label.name);
-                        setEditColor(label.color);
-                      }}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      disabled={remove.isPending}
-                      onClick={() => {
-                        if (
-                          confirm(
-                            `Delete label "${label.name}"? It will be removed from all tasks.`,
-                          )
-                        ) {
-                          remove.mutate(label.id);
-                        }
-                      }}
-                    >
-                      Delete
-                    </Button>
+                    {canManage ? (
+                      <>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setEditingId(label.id);
+                            setEditName(label.name);
+                            setEditColor(label.color);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          disabled={remove.isPending}
+                          onClick={() => {
+                            if (
+                              confirm(
+                                `Delete label "${label.name}"? It will be removed from all tasks.`,
+                              )
+                            ) {
+                              remove.mutate(label.id);
+                            }
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </>
+                    ) : null}
                   </div>
                 </div>
               )}

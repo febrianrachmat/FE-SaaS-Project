@@ -9,6 +9,7 @@ import {
   readFlag,
   writeFlag,
 } from "@/shared/lib/onboarding-storage";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = {
   workspaceSlug: string;
@@ -19,13 +20,14 @@ export function ProjectNextStepsBanner({
   workspaceSlug,
   projectSlug,
 }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
   const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
     setHidden(readFlag(nextStepsDismissKey(workspaceSlug, projectSlug)));
   }, [workspaceSlug, projectSlug]);
 
-  if (hidden) return null;
+  if (hidden || caps.isViewOnly) return null;
 
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-sky-200 bg-sky-50/70 px-4 py-3 dark:border-sky-900/50 dark:bg-sky-950/30">
@@ -37,26 +39,30 @@ export function ProjectNextStepsBanner({
           Create a task, invite someone, or plan work in a cycle.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              document.getElementById("task-title")?.focus();
-              document
-                .getElementById("create-task")
-                ?.scrollIntoView({ behavior: "smooth", block: "center" });
-            }}
-          >
-            <ListTodo className="h-3.5 w-3.5" />
-            Create a task
-          </Button>
-          <Link href={`/app/w/${workspaceSlug}#invite`}>
-            <Button type="button" size="sm" variant="outline">
-              <UserPlus className="h-3.5 w-3.5" />
-              Invite teammate
+          {caps.canCreateTask ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => {
+                document.getElementById("task-title")?.focus();
+                document
+                  .getElementById("create-task")
+                  ?.scrollIntoView({ behavior: "smooth", block: "center" });
+              }}
+            >
+              <ListTodo className="h-3.5 w-3.5" />
+              Create a task
             </Button>
-          </Link>
+          ) : null}
+          {caps.canInvite ? (
+            <Link href={`/app/w/${workspaceSlug}#invite`}>
+              <Button type="button" size="sm" variant="outline">
+                <UserPlus className="h-3.5 w-3.5" />
+                Invite teammate
+              </Button>
+            </Link>
+          ) : null}
           <Link href={`/app/w/${workspaceSlug}/cycles`}>
             <Button type="button" size="sm" variant="outline">
               <Repeat className="h-3.5 w-3.5" />

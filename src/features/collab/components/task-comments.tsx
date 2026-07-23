@@ -11,7 +11,10 @@ import {
 import { format, parseISO } from "date-fns";
 import { Button } from "@/shared/ui/button";
 import { useAuthStore } from "@/features/auth";
-import { useWorkspaceMembers } from "@/features/workspace";
+import {
+  useWorkspaceCapabilities,
+  useWorkspaceMembers,
+} from "@/features/workspace";
 import {
   useComments,
   useCreateComment,
@@ -202,6 +205,7 @@ function MentionTextarea({
 
 export function TaskComments({ workspaceSlug, projectSlug, taskId }: Props) {
   const user = useAuthStore((s) => s.user);
+  const caps = useWorkspaceCapabilities(workspaceSlug);
   const { data, isLoading } = useComments(workspaceSlug, projectSlug, taskId);
   const create = useCreateComment(workspaceSlug, projectSlug, taskId);
   const update = useUpdateComment(workspaceSlug, projectSlug, taskId);
@@ -268,7 +272,9 @@ export function TaskComments({ workspaceSlug, projectSlug, taskId }: Props) {
                     </>
                   )}
                 </div>
-                {user?.id === c.author.id && editingId !== c.id ? (
+                {caps.canComment &&
+                user?.id === c.author.id &&
+                editingId !== c.id ? (
                   <div className="flex shrink-0 gap-1">
                     <Button
                       variant="ghost"
@@ -312,29 +318,35 @@ export function TaskComments({ workspaceSlug, projectSlug, taskId }: Props) {
         </ul>
       )}
 
-      <form
-        className="space-y-2"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (!body.trim()) return;
-          await create.mutateAsync(body.trim());
-          setBody("");
-        }}
-      >
-        <MentionTextarea
-          workspaceSlug={workspaceSlug}
-          value={body}
-          onChange={setBody}
-          placeholder="Write a comment… Type @ to mention"
-        />
-        <Button
-          type="submit"
-          size="sm"
-          disabled={create.isPending || !body.trim()}
+      {caps.canComment ? (
+        <form
+          className="space-y-2"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!body.trim()) return;
+            await create.mutateAsync(body.trim());
+            setBody("");
+          }}
         >
-          {create.isPending ? "Posting…" : "Post comment"}
-        </Button>
-      </form>
+          <MentionTextarea
+            workspaceSlug={workspaceSlug}
+            value={body}
+            onChange={setBody}
+            placeholder="Write a comment… Type @ to mention"
+          />
+          <Button
+            type="submit"
+            size="sm"
+            disabled={create.isPending || !body.trim()}
+          >
+            {create.isPending ? "Posting…" : "Post comment"}
+          </Button>
+        </form>
+      ) : (
+        <p className="text-xs text-slate-400">
+          Comments are view-only for your role.
+        </p>
+      )}
     </div>
   );
 }

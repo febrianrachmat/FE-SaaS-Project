@@ -38,6 +38,9 @@ export function TaskRow({
   selected,
   onToggleSelect,
 }: Props) {
+  const canSelect = Boolean(onToggleSelect);
+  const canChangeStatus = Boolean(onStatusChange);
+
   return (
     <div
       className={cn(
@@ -51,17 +54,19 @@ export function TaskRow({
       role="button"
       tabIndex={0}
     >
-      <input
-        type="checkbox"
-        className="h-3.5 w-3.5 shrink-0 accent-primary-600"
-        checked={Boolean(selected)}
-        onChange={(e) => {
-          e.stopPropagation();
-          onToggleSelect?.();
-        }}
-        onClick={(e) => e.stopPropagation()}
-        aria-label={`Select ${task.title}`}
-      />
+      {canSelect ? (
+        <input
+          type="checkbox"
+          className="h-3.5 w-3.5 shrink-0 accent-primary-600"
+          checked={Boolean(selected)}
+          onChange={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.();
+          }}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Select ${task.title}`}
+        />
+      ) : null}
       <span
         className={cn("h-2 w-2 shrink-0 rounded-full", PRIORITY_DOT[task.priority])}
         title={task.priority}
@@ -79,22 +84,26 @@ export function TaskRow({
           {task.subtaskCount ? ` · ${task.subtaskCount} subtasks` : ""}
         </p>
       </div>
-      <select
-        className={cn(
-          "rounded-md px-2 py-1 text-xs font-medium",
-          STATUS_STYLE[task.status],
-        )}
-        value={task.status}
-        onClick={(e) => e.stopPropagation()}
-        onChange={(e) => onStatusChange?.(e.target.value as TaskStatus)}
-        aria-label="Task status"
-      >
-        {(Object.keys(STATUS_STYLE) as TaskStatus[]).map((s) => (
-          <option key={s} value={s}>
-            {s.replace("_", " ")}
-          </option>
-        ))}
-      </select>
+      {canChangeStatus ? (
+        <select
+          className={cn(
+            "rounded-md px-2 py-1 text-xs font-medium",
+            STATUS_STYLE[task.status],
+          )}
+          value={task.status}
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => onStatusChange?.(e.target.value as TaskStatus)}
+          aria-label="Task status"
+        >
+          {(Object.keys(STATUS_STYLE) as TaskStatus[]).map((s) => (
+            <option key={s} value={s}>
+              {s.replace("_", " ")}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <StatusBadge status={task.status} />
+      )}
     </div>
   );
 }

@@ -1,6 +1,9 @@
 "use client";
 
-import { useWorkspaceMembers } from "@/features/workspace";
+import {
+  useWorkspaceCapabilities,
+  useWorkspaceMembers,
+} from "@/features/workspace";
 import type { TaskPriority, TaskStatus } from "@/shared/types/domain";
 import { Button } from "@/shared/ui/button";
 import { useBulkTasks } from "../hooks/use-project";
@@ -36,11 +39,12 @@ export function BulkActionBar({
   selectedIds,
   onClear,
 }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
   const bulk = useBulkTasks(workspaceSlug, projectSlug);
   const { data: members = [] } = useWorkspaceMembers(workspaceSlug);
   const count = selectedIds.length;
 
-  if (count === 0) return null;
+  if (!caps.canUpdateTask || count === 0) return null;
 
   function runUpdate(patch: {
     status?: TaskStatus;
@@ -130,22 +134,28 @@ export function BulkActionBar({
         ))}
       </select>
 
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={bulk.isPending}
-        onClick={() => {
-          if (!window.confirm(`Delete ${count} task${count === 1 ? "" : "s"}?`)) {
-            return;
-          }
-          bulk.mutate(
-            { action: "delete", taskIds: selectedIds },
-            { onSuccess: () => onClear() },
-          );
-        }}
-      >
-        Delete
-      </Button>
+      {caps.canDeleteTask ? (
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={bulk.isPending}
+          onClick={() => {
+            if (
+              !window.confirm(
+                `Delete ${count} task${count === 1 ? "" : "s"}?`,
+              )
+            ) {
+              return;
+            }
+            bulk.mutate(
+              { action: "delete", taskIds: selectedIds },
+              { onSuccess: () => onClear() },
+            );
+          }}
+        >
+          Delete
+        </Button>
+      ) : null}
 
       <Button
         variant="ghost"

@@ -11,6 +11,7 @@ import {
   useTasks,
 } from "../hooks/use-project";
 import type { TaskDependency, TaskDependencyType } from "../types";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = {
   workspaceSlug: string;
@@ -26,7 +27,7 @@ function DependencyList({
 }: {
   title: string;
   items: TaskDependency[];
-  onRemove: (id: string) => void;
+  onRemove?: (id: string) => void;
   removing: boolean;
 }) {
   if (!items.length) return null;
@@ -47,17 +48,19 @@ function DependencyList({
             <span className="shrink-0 text-[10px] text-slate-400">
               {dep.relatedTask.status.replaceAll("_", " ")}
             </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 shrink-0 text-slate-400 hover:text-rose-600"
-              aria-label={`Remove dependency ${dep.relatedTask.title}`}
-              disabled={removing}
-              onClick={() => onRemove(dep.id)}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            {onRemove ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 shrink-0 text-slate-400 hover:text-rose-600"
+                aria-label={`Remove dependency ${dep.relatedTask.title}`}
+                disabled={removing}
+                onClick={() => onRemove(dep.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            ) : null}
           </li>
         ))}
       </ul>
@@ -70,6 +73,8 @@ export function TaskDependencies({
   projectSlug,
   taskId,
 }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
+  const canEdit = caps.canUpdateTask;
   const { data } = useTaskDependencies(workspaceSlug, projectSlug, taskId);
   const add = useAddDependency(workspaceSlug, projectSlug, taskId);
   const remove = useRemoveDependency(workspaceSlug, projectSlug, taskId);
@@ -115,100 +120,102 @@ export function TaskDependencies({
           title="Blocks"
           items={blocking}
           removing={remove.isPending}
-          onRemove={(id) => remove.mutate(id)}
+          onRemove={canEdit ? (id) => remove.mutate(id) : undefined}
         />
         <DependencyList
           title="Blocked by"
           items={blockedBy}
           removing={remove.isPending}
-          onRemove={(id) => remove.mutate(id)}
+          onRemove={canEdit ? (id) => remove.mutate(id) : undefined}
         />
         <DependencyList
           title="Relates to"
           items={relatesTo}
           removing={remove.isPending}
-          onRemove={(id) => remove.mutate(id)}
+          onRemove={canEdit ? (id) => remove.mutate(id) : undefined}
         />
 
         {!total ? (
           <p className="text-xs text-slate-400">No dependencies yet.</p>
         ) : null}
 
-        <form
-          className="space-y-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (!selectedId) return;
-            add.mutate(
-              { toTaskId: selectedId, type },
-              {
-                onSuccess: () => {
-                  setSelectedId("");
-                  setQuery("");
+        {canEdit ? (
+          <form
+            className="space-y-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!selectedId) return;
+              add.mutate(
+                { toTaskId: selectedId, type },
+                {
+                  onSuccess: () => {
+                    setSelectedId("");
+                    setQuery("");
+                  },
                 },
-              },
-            );
-          }}
-        >
-          <div className="flex gap-2">
-            <select
-              className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
-              value={type}
-              onChange={(e) =>
-                setType(e.target.value as TaskDependencyType)
-              }
-              aria-label="Dependency type"
-            >
-              <option value="BLOCKS">Blocks</option>
-              <option value="IS_BLOCKED_BY">Blocked by</option>
-              <option value="RELATES_TO">Relates to</option>
-            </select>
-            <Input
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setSelectedId("");
-              }}
-              placeholder="Search tasks…"
-              className="text-sm"
-            />
-          </div>
-
-          {query.trim() && candidates.length > 0 ? (
-            <ul className="max-h-36 overflow-auto rounded-lg border border-slate-200 dark:border-zinc-700">
-              {candidates.map((t) => (
-                <li key={t.id}>
-                  <button
-                    type="button"
-                    className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-zinc-900 ${
-                      selectedId === t.id
-                        ? "bg-slate-100 dark:bg-zinc-800"
-                        : ""
-                    }`}
-                    onClick={() => {
-                      setSelectedId(t.id);
-                      setQuery(t.title);
-                    }}
-                  >
-                    <span className="truncate">{t.title}</span>
-                    <span className="ml-2 shrink-0 text-[10px] text-slate-400">
-                      {t.status.replaceAll("_", " ")}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-
-          <Button
-            type="submit"
-            size="sm"
-            variant="secondary"
-            disabled={add.isPending || !selectedId}
+              );
+            }}
           >
-            Add dependency
-          </Button>
-        </form>
+            <div className="flex gap-2">
+              <select
+                className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+                value={type}
+                onChange={(e) =>
+                  setType(e.target.value as TaskDependencyType)
+                }
+                aria-label="Dependency type"
+              >
+                <option value="BLOCKS">Blocks</option>
+                <option value="IS_BLOCKED_BY">Blocked by</option>
+                <option value="RELATES_TO">Relates to</option>
+              </select>
+              <Input
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setSelectedId("");
+                }}
+                placeholder="Search tasks…"
+                className="text-sm"
+              />
+            </div>
+
+            {query.trim() && candidates.length > 0 ? (
+              <ul className="max-h-36 overflow-auto rounded-lg border border-slate-200 dark:border-zinc-700">
+                {candidates.map((t) => (
+                  <li key={t.id}>
+                    <button
+                      type="button"
+                      className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-zinc-900 ${
+                        selectedId === t.id
+                          ? "bg-slate-100 dark:bg-zinc-800"
+                          : ""
+                      }`}
+                      onClick={() => {
+                        setSelectedId(t.id);
+                        setQuery(t.title);
+                      }}
+                    >
+                      <span className="truncate">{t.title}</span>
+                      <span className="ml-2 shrink-0 text-[10px] text-slate-400">
+                        {t.status.replaceAll("_", " ")}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <Button
+              type="submit"
+              size="sm"
+              variant="secondary"
+              disabled={add.isPending || !selectedId}
+            >
+              Add dependency
+            </Button>
+          </form>
+        ) : null}
       </div>
     </div>
   );

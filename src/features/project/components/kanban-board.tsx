@@ -29,6 +29,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { LabelChips } from "./label-chips";
 import { ListTodo } from "lucide-react";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 
 type Props = {
   workspaceSlug: string;
@@ -52,11 +53,15 @@ function KanbanCard({
   onSelect,
   selected,
   onToggleSelect,
+  canDrag,
+  canSelect,
 }: {
   task: Task;
   onSelect?: () => void;
   selected?: boolean;
   onToggleSelect?: () => void;
+  canDrag?: boolean;
+  canSelect?: boolean;
 }) {
   const {
     attributes,
@@ -65,7 +70,11 @@ function KanbanCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id, data: { status: task.status } });
+  } = useSortable({
+    id: task.id,
+    data: { status: task.status },
+    disabled: !canDrag,
+  });
 
   return (
     <div
@@ -81,22 +90,28 @@ function KanbanCard({
       )}
     >
       <div className="mb-2 flex items-start gap-2">
-        <input
-          type="checkbox"
-          className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-primary-600"
-          checked={Boolean(selected)}
-          onChange={(e) => {
-            e.stopPropagation();
-            onToggleSelect?.();
-          }}
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          aria-label={`Select ${task.title}`}
-        />
+        {canSelect ? (
+          <input
+            type="checkbox"
+            className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-primary-600"
+            checked={Boolean(selected)}
+            onChange={(e) => {
+              e.stopPropagation();
+              onToggleSelect?.();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label={`Select ${task.title}`}
+          />
+        ) : null}
         <div
-          className="min-w-0 flex-1 cursor-grab active:cursor-grabbing"
-          {...attributes}
-          {...listeners}
+          className={cn(
+            "min-w-0 flex-1",
+            canDrag
+              ? "cursor-grab active:cursor-grabbing"
+              : "cursor-pointer",
+          )}
+          {...(canDrag ? { ...attributes, ...listeners } : {})}
           onClick={onSelect}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -136,6 +151,8 @@ function KanbanColumn({
   onSelectTask,
   selectedIds,
   onToggleSelect,
+  canDrag,
+  canSelect,
 }: {
   id: KanbanColumnId;
   label: string;
@@ -143,8 +160,10 @@ function KanbanColumn({
   onSelectTask?: (taskId: string) => void;
   selectedIds?: Set<string>;
   onToggleSelect?: (taskId: string) => void;
+  canDrag?: boolean;
+  canSelect?: boolean;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id });
+  const { setNodeRef, isOver } = useDroppable({ id, disabled: !canDrag });
 
   return (
     <div
@@ -176,6 +195,8 @@ function KanbanColumn({
               onSelect={() => onSelectTask?.(task.id)}
               selected={selectedIds?.has(task.id)}
               onToggleSelect={() => onToggleSelect?.(task.id)}
+              canDrag={canDrag}
+              canSelect={canSelect}
             />
           ))}
         </div>
@@ -193,6 +214,9 @@ export function KanbanBoard({
   onRequestCreateTask,
   filters,
 }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
+  const canDrag = caps.canUpdateTask;
+  const canSelect = caps.canUpdateTask;
   const queryClient = useQueryClient();
   const { data: tasks, isLoading } = useTasks(
     workspaceSlug,
@@ -271,6 +295,7 @@ export function KanbanBoard({
 
   const onDragEnd = (event: DragEndEvent) => {
     setActiveId(null);
+    if (!canDrag) return;
     const { active, over } = event;
     if (!over || !tasks) return;
 
@@ -334,9 +359,15 @@ export function KanbanBoard({
       <EmptyState
         icon={<ListTodo className="h-10 w-10" />}
         title="No tasks on this board"
-        description="Add your first task to start moving work across columns."
-        actionLabel="Create a task"
-        onAction={() => onRequestCreateTask?.()}
+        description={
+          caps.canCreateTask
+            ? "Add your first task to start moving work across columns."
+            : "This board has no tasks yet. Ask a teammate to add work."
+        }
+        actionLabel={caps.canCreateTask ? "Create a task" : undefined}
+        onAction={
+          caps.canCreateTask ? () => onRequestCreateTask?.() : undefined
+        }
       />
     );
   }
@@ -352,10 +383,10 @@ export function KanbanBoard({
 
   return (
     <DndContext
-      sensors={sensors}
+      sensors={canDrag ? sensors : []}
       collisionDetection={closestCorners}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      onDragStart={canDrag ? onDragStart : undefined}
+      onDragEnd={canDrag ? onDragEnd : undefined}
     >
       <div className="flex gap-3 overflow-x-auto pb-4">
         {KANBAN_COLUMNS.map((col) => (
@@ -367,6 +398,8 @@ export function KanbanBoard({
             onSelectTask={onSelectTask}
             selectedIds={selectedIds}
             onToggleSelect={onToggleSelect}
+            canDrag={canDrag}
+            canSelect={canSelect}
           />
         ))}
       </div>

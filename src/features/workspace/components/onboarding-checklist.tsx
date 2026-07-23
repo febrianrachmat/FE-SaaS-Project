@@ -8,6 +8,7 @@ import { useProjects, useCreateSampleProject, useLabels } from "@/features/proje
 import {
   usePendingInvitations,
   useWorkspace,
+  useWorkspaceCapabilities,
   useWorkspaceMembers,
 } from "@/features/workspace";
 import { ApiError } from "@/shared/types/api";
@@ -22,6 +23,7 @@ import {
 type Props = { workspaceSlug: string };
 
 export function OnboardingChecklist({ workspaceSlug }: Props) {
+  const caps = useWorkspaceCapabilities(workspaceSlug);
   const { data: workspace } = useWorkspace(workspaceSlug);
   const { data: projects = [] } = useProjects(workspaceSlug);
   const { data: labels = [] } = useLabels(workspaceSlug);
@@ -118,9 +120,9 @@ export function OnboardingChecklist({ workspaceSlug }: Props) {
   const requiredDone = steps
     .filter((s) => !s.optional)
     .every((s) => s.done);
-  const showSample = projects.length === 0;
+  const showSample = projects.length === 0 && caps.canCreateProject;
 
-  if (dismissed || requiredDone) return null;
+  if (caps.isViewOnly || dismissed || requiredDone) return null;
 
   return (
     <section className="rounded-2xl border border-primary-200 bg-gradient-to-br from-primary-50 to-white p-5 dark:border-primary-900/40 dark:from-primary-950/30 dark:to-zinc-950">

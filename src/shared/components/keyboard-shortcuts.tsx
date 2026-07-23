@@ -5,12 +5,19 @@ import {
   SHORTCUT_HELP,
   useKeyboardShortcuts,
 } from "@/shared/hooks/use-keyboard-shortcuts";
+import {
+  useWorkspaceCapabilities,
+  useWorkspaceStore,
+} from "@/features/workspace";
 
 export function KeyboardShortcuts() {
   const [helpOpen, setHelpOpen] = useState(false);
+  const activeSlug = useWorkspaceStore((s) => s.activeSlug);
+  const caps = useWorkspaceCapabilities(activeSlug ?? "");
 
   const onOpenHelp = useCallback(() => setHelpOpen((v) => !v), []);
   const onOpenCreateTask = useCallback(() => {
+    if (!caps.canCreateTask) return;
     const input = document.getElementById(
       "task-title",
     ) as HTMLInputElement | null;
@@ -18,7 +25,7 @@ export function KeyboardShortcuts() {
       input.focus();
       input.scrollIntoView({ block: "center", behavior: "smooth" });
     }
-  }, []);
+  }, [caps.canCreateTask]);
 
   useKeyboardShortcuts({ onOpenHelp, onOpenCreateTask });
 

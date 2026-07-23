@@ -26,6 +26,7 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PresenceAvatars } from "@/shared/components/presence-avatars";
 import { usePresence } from "@/shared/hooks/use-presence";
+import { useWorkspaceCapabilities } from "@/features/workspace";
 import {
   onboardingFlagKey,
   writeFlag,
@@ -43,6 +44,7 @@ export default function ProjectDetailPage({ params }: Props) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const caps = useWorkspaceCapabilities(slug);
   const { data: project, isLoading } = useProject(slug, projectSlug);
   const [filters, setFilters] = useState<TaskFilters>(() =>
     filtersFromSearchParams(new URLSearchParams(searchParams.toString())),
@@ -193,10 +195,19 @@ export default function ProjectDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <ProjectNextStepsBanner
-          workspaceSlug={slug}
-          projectSlug={projectSlug}
-        />
+        {caps.isViewOnly ? (
+          <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+            View only — your guest role can browse this project but not edit
+            tasks or leave comments.
+          </p>
+        ) : null}
+
+        {caps.canCreateTask || caps.canInvite ? (
+          <ProjectNextStepsBanner
+            workspaceSlug={slug}
+            projectSlug={projectSlug}
+          />
+        ) : null}
 
         <CreateTaskForm workspaceSlug={slug} projectSlug={projectSlug} />
 
@@ -234,25 +245,40 @@ export default function ProjectDetailPage({ params }: Props) {
                 key={task.id}
                 task={task}
                 onClick={() => setSelectedTaskId(task.id)}
-                onStatusChange={(status: TaskStatus) =>
-                  updateTask.mutate({ taskId: task.id, status })
+                onStatusChange={
+                  caps.canUpdateTask
+                    ? (status: TaskStatus) =>
+                        updateTask.mutate({ taskId: task.id, status })
+                    : undefined
                 }
                 selected={selectedIds.has(task.id)}
-                onToggleSelect={() => toggleSelect(task.id)}
+                onToggleSelect={
+                  caps.canUpdateTask
+                    ? () => toggleSelect(task.id)
+                    : undefined
+                }
               />
             ))}
           </div>
         ) : (
           <EmptyState
             title="No matching tasks"
-            description="Try clearing filters or add a new task."
-            actionLabel="Create a task"
-            onAction={() => {
-              document.getElementById("task-title")?.focus();
-              document
-                .getElementById("create-task")
-                ?.scrollIntoView({ behavior: "smooth", block: "center" });
-            }}
+            description={
+              caps.canCreateTask
+                ? "Try clearing filters or add a new task."
+                : "Try clearing filters to see more tasks."
+            }
+            actionLabel={caps.canCreateTask ? "Create a task" : undefined}
+            onAction={
+              caps.canCreateTask
+                ? () => {
+                    document.getElementById("task-title")?.focus();
+                    document
+                      .getElementById("create-task")
+                      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }
+                : undefined
+            }
           />
         )}
 
