@@ -28,6 +28,21 @@ export const workspaceApi = {
 
   get: (slug: string) => apiClient<Workspace>(`/workspaces/${slug}`),
 
+  listSecurityLog: (slug: string) =>
+    apiClient<
+      Array<{
+        id: string;
+        action: string;
+        ip: string | null;
+        userAgent: string | null;
+        metadata: unknown;
+        createdAt: string;
+        workspaceId: string | null;
+        actor: { id: string; name: string; email: string } | null;
+        subject: { id: string; name: string; email: string } | null;
+      }>
+    >(`/workspaces/${slug}/security-log`),
+
   update: (slug: string, payload: UpdateWorkspaceInput) =>
     apiClient<Workspace>(`/workspaces/${slug}`, {
       method: "PATCH",

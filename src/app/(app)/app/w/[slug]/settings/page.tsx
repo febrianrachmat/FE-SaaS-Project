@@ -22,6 +22,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { ApiError } from "@/shared/types/api";
+import { WorkspaceSecurityLogPanel } from "@/features/workspace/components/workspace-security-log-panel";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -212,6 +213,8 @@ export default function WorkspaceSettingsPage({ params }: PageProps) {
           ) : null}
         </section>
       ) : null}
+
+      {canEdit ? <WorkspaceSecurityLogPanel workspaceSlug={slug} /> : null}
 
       {isOwner ? (
         <section className="space-y-4 rounded-2xl border border-rose-200 bg-rose-50/60 p-6 dark:border-rose-900/50 dark:bg-rose-950/20">

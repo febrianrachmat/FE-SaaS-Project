@@ -25,6 +25,7 @@ import {
 } from "../hooks/use-auth";
 import type { NotificationPrefs } from "../api/auth.api";
 import { ActiveSessionsPanel } from "./active-sessions-panel";
+import { AccountSecurityLogPanel } from "./security-audit-panel";
 
 const PREF_LABELS: Array<{ key: keyof NotificationPrefs; label: string }> = [
   { key: "emailEnabled", label: "Email notifications" },
@@ -324,6 +325,9 @@ export function AccountSettingsPanel() {
 
         <div className="border-t border-slate-100 pt-4 dark:border-zinc-800">
           <ActiveSessionsPanel />
+        </div>
+        <div className="border-t border-slate-100 pt-4 dark:border-zinc-800">
+          <AccountSecurityLogPanel />
         </div>
       </section>
     </div>

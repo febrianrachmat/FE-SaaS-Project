@@ -56,6 +56,18 @@ export type AuthSession = {
   isCurrent: boolean;
 };
 
+export type SecurityAuditEvent = {
+  id: string;
+  action: string;
+  ip: string | null;
+  userAgent: string | null;
+  metadata: unknown;
+  createdAt: string;
+  workspaceId: string | null;
+  actor: { id: string; name: string; email: string } | null;
+  subject: { id: string; name: string; email: string } | null;
+};
+
 export const authApi = {
   register: (payload: RegisterInput) =>
     apiClient<RegisterResult>("/auth/register", {
@@ -117,6 +129,9 @@ export const authApi = {
     apiClient<{ message: string }>("/auth/sessions/revoke-others", {
       method: "POST",
     }),
+
+  listSecurityLog: () =>
+    apiClient<SecurityAuditEvent[]>("/auth/security-log"),
 
   notificationPrefs: () =>
     apiClient<NotificationPrefs>("/auth/me/notification-preferences"),

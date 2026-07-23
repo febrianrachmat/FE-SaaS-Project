@@ -40,6 +40,7 @@ export type ApiKey = {
   workspaceId: string;
   name: string;
   keyPrefix: string;
+  scopes: string[];
   createdById: string;
   lastUsedAt: string | null;
   revokedAt: string | null;
@@ -52,6 +53,7 @@ export type CreatedApiKey = ApiKey & {
 
 export type CreateApiKeyInput = {
   name: string;
+  scopes?: string[];
 };
 
 export const WEBHOOK_EVENT_OPTIONS = [
@@ -61,4 +63,19 @@ export const WEBHOOK_EVENT_OPTIONS = [
   { value: "mention", label: "Mention" },
   { value: "task.completed", label: "Task completed" },
   { value: "task.due_soon", label: "Due soon" },
+] as const;
+
+/** Common scopes for API key UI (subset of BE PERMISSIONS). */
+export const API_KEY_SCOPE_OPTIONS = [
+  { value: "workspace:view", label: "View workspace" },
+  { value: "project:create", label: "Create projects" },
+  { value: "project:update", label: "Update projects" },
+  { value: "project:delete", label: "Delete projects" },
+  { value: "task:create", label: "Create tasks" },
+  { value: "task:update", label: "Update tasks" },
+  { value: "task:delete", label: "Delete tasks" },
+  { value: "task:assign", label: "Assign tasks" },
+  { value: "comment:create", label: "Create comments" },
+  { value: "file:upload", label: "Upload files" },
+  { value: "settings:manage", label: "Manage settings" },
 ] as const;

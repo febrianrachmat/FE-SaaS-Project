@@ -21,7 +21,7 @@ import {
   useWebhookDeliveries,
   useWebhooks,
 } from "../hooks/use-integrations";
-import { WEBHOOK_EVENT_OPTIONS, type Webhook } from "../types";
+import { WEBHOOK_EVENT_OPTIONS, API_KEY_SCOPE_OPTIONS, type Webhook } from "../types";
 
 type Props = { workspaceSlug: string };
 
@@ -192,6 +192,7 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
     "mention",
   ]);
   const [keyName, setKeyName] = useState("");
+  const [keyScopes, setKeyScopes] = useState<string[]>(["workspace:view"]);
   const [revealedKey, setRevealedKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [deliveriesFor, setDeliveriesFor] = useState<string | null>(null);
@@ -367,7 +368,8 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
         <p className="text-sm text-slate-500">
           Authenticate workspace API calls with header{" "}
           <code className="text-[11px]">X-Api-Key: fp_live_…</code>. Keys are
-          scoped to this workspace and use the creator&apos;s permissions.
+          limited to this workspace, the creator&apos;s role, and the scopes you
+          select (leave empty for full creator permissions).
         </p>
 
         <form
@@ -376,10 +378,14 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
             e.preventDefault();
             if (!keyName.trim()) return;
             createApiKey.mutate(
-              { name: keyName.trim() },
+              {
+                name: keyName.trim(),
+                scopes: keyScopes.length ? keyScopes : undefined,
+              },
               {
                 onSuccess: (data) => {
                   setKeyName("");
+                  setKeyScopes(["workspace:view"]);
                   setRevealedKey(data.key);
                   setCopied(false);
                 },
@@ -397,6 +403,39 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
               maxLength={100}
             />
           </div>
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium text-slate-700 dark:text-zinc-300">
+              Scopes
+            </legend>
+            <p className="text-xs text-slate-400">
+              Uncheck all for unrestricted (creator role still applies).
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {API_KEY_SCOPE_OPTIONS.map((opt) => {
+                const checked = keyScopes.includes(opt.value);
+                return (
+                  <label
+                    key={opt.value}
+                    className="flex items-center gap-2 text-sm text-slate-700 dark:text-zinc-300"
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300"
+                      checked={checked}
+                      onChange={() => {
+                        setKeyScopes((prev) =>
+                          checked
+                            ? prev.filter((s) => s !== opt.value)
+                            : [...prev, opt.value],
+                        );
+                      }}
+                    />
+                    {opt.label}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
           {createApiKey.error instanceof ApiError ? (
             <p className="text-sm text-danger-600">
               {createApiKey.error.message}
@@ -468,6 +507,11 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
                     {key.revokedAt ? " · revoked" : ""}
                     {" · last used "}
                     {formatWhen(key.lastUsedAt)}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {key.scopes?.length
+                      ? `scopes: ${key.scopes.join(", ")}`
+                      : "scopes: unrestricted"}
                   </p>
                 </div>
                 {!key.revokedAt ? (

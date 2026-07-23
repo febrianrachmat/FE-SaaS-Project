@@ -15,6 +15,7 @@ export {
   useSessions,
   useRevokeSession,
   useRevokeOtherSessions,
+  useSecurityLog,
   useNotificationPrefs,
   useUpdateNotificationPrefs,
 } from "./hooks/use-auth";
@@ -26,4 +27,8 @@ export { ResetPasswordForm } from "./components/reset-password-form";
 export { VerifyEmailPanel } from "./components/verify-email-panel";
 export { AccountSettingsPanel } from "./components/account-settings-panel";
 export { ActiveSessionsPanel } from "./components/active-sessions-panel";
+export {
+  AccountSecurityLogPanel,
+  SecurityAuditList,
+} from "./components/security-audit-panel";
 export { AuthBootstrap, RequireAuth } from "./components/require-auth";

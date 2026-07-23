@@ -23,6 +23,7 @@ export const authKeys = {
   me: ["auth", "me"] as const,
   notificationPrefs: ["auth", "notification-prefs"] as const,
   sessions: ["auth", "sessions"] as const,
+  securityLog: ["auth", "security-log"] as const,
 };
 
 export function useAuthBootstrap() {
@@ -230,6 +231,13 @@ export function useRevokeOtherSessions() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: authKeys.sessions });
     },
+  });
+}
+
+export function useSecurityLog() {
+  return useQuery({
+    queryKey: authKeys.securityLog,
+    queryFn: () => authApi.listSecurityLog(),
   });
 }
 

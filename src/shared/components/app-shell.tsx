@@ -21,6 +21,7 @@ import {
   ChartGantt,
   LayoutTemplate,
   Plug,
+  Trash2,
 } from "lucide-react";
 import { useUiStore } from "@/shared/stores/ui-store";
 import { cn } from "@/shared/lib/utils";
@@ -57,6 +58,12 @@ const NAV = [
     href: "activity",
     label: "Activity",
     icon: Activity,
+    workspaceScoped: true,
+  },
+  {
+    href: "trash",
+    label: "Trash",
+    icon: Trash2,
     workspaceScoped: true,
   },
   {
