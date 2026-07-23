@@ -40,6 +40,16 @@ export const integrationsApi = {
       `/workspaces/${workspaceSlug}/webhooks/${webhookId}/deliveries`,
     ),
 
+  retryWebhookDelivery: (
+    workspaceSlug: string,
+    webhookId: string,
+    deliveryId: string,
+  ) =>
+    apiClient<{ message: string }>(
+      `/workspaces/${workspaceSlug}/webhooks/${webhookId}/deliveries/${deliveryId}/retry`,
+      { method: "POST" },
+    ),
+
   listApiKeys: (workspaceSlug: string) =>
     apiClient<ApiKey[]>(`/workspaces/${workspaceSlug}/api-keys`),
 
@@ -52,6 +62,12 @@ export const integrationsApi = {
   revokeApiKey: (workspaceSlug: string, apiKeyId: string) =>
     apiClient<ApiKey>(
       `/workspaces/${workspaceSlug}/api-keys/${apiKeyId}/revoke`,
+      { method: "POST" },
+    ),
+
+  rotateApiKey: (workspaceSlug: string, apiKeyId: string) =>
+    apiClient<CreatedApiKey>(
+      `/workspaces/${workspaceSlug}/api-keys/${apiKeyId}/rotate`,
       { method: "POST" },
     ),
 };

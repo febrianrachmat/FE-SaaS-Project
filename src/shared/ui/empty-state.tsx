@@ -8,6 +8,8 @@ type EmptyStateProps = {
   description: string;
   actionLabel?: string;
   onAction?: () => void;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
   className?: string;
 };
 
@@ -17,6 +19,8 @@ export function EmptyState({
   description,
   actionLabel,
   onAction,
+  secondaryActionLabel,
+  onSecondaryAction,
   className,
 }: EmptyStateProps) {
   return (
@@ -36,9 +40,14 @@ export function EmptyState({
         {description}
       </p>
       {actionLabel && onAction ? (
-        <Button className="mt-6" onClick={onAction}>
-          {actionLabel}
-        </Button>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+          <Button onClick={onAction}>{actionLabel}</Button>
+          {secondaryActionLabel && onSecondaryAction ? (
+            <Button variant="outline" onClick={onSecondaryAction}>
+              {secondaryActionLabel}
+            </Button>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

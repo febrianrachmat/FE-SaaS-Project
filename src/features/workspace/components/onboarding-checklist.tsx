@@ -12,12 +12,14 @@ import {
 } from "@/features/workspace";
 import { ApiError } from "@/shared/types/api";
 import { cn } from "@/shared/lib/utils";
+import {
+  onboardingDismissKey,
+  onboardingFlagKey,
+  readFlag,
+  writeFlag,
+} from "@/shared/lib/onboarding-storage";
 
 type Props = { workspaceSlug: string };
-
-function dismissKey(slug: string) {
-  return `flowpilot:onboarding-dismissed:${slug}`;
-}
 
 export function OnboardingChecklist({ workspaceSlug }: Props) {
   const { data: workspace } = useWorkspace(workspaceSlug);
@@ -27,14 +29,20 @@ export function OnboardingChecklist({ workspaceSlug }: Props) {
   const { data: invitations = [] } = usePendingInvitations(workspaceSlug);
   const sample = useCreateSampleProject(workspaceSlug);
   const [dismissed, setDismissed] = useState(true);
+  const [visitedBoard, setVisitedBoard] = useState(false);
+  const [visitedMyWork, setVisitedMyWork] = useState(false);
+  const [createdTask, setCreatedTask] = useState(false);
+  const [visitedCycles, setVisitedCycles] = useState(false);
 
   useEffect(() => {
-    try {
-      setDismissed(localStorage.getItem(dismissKey(workspaceSlug)) === "1");
-    } catch {
-      setDismissed(false);
-    }
+    setDismissed(readFlag(onboardingDismissKey(workspaceSlug)));
+    setVisitedBoard(readFlag(onboardingFlagKey(workspaceSlug, "visited-board")));
+    setVisitedMyWork(readFlag(onboardingFlagKey(workspaceSlug, "visited-my-work")));
+    setCreatedTask(readFlag(onboardingFlagKey(workspaceSlug, "created-task")));
+    setVisitedCycles(readFlag(onboardingFlagKey(workspaceSlug, "visited-cycles")));
   }, [workspaceSlug]);
+
+  const firstProject = projects[0];
 
   const steps = useMemo(() => {
     const hasProject = projects.length > 0;
@@ -48,11 +56,36 @@ export function OnboardingChecklist({ workspaceSlug }: Props) {
         optional: false,
       },
       {
+        id: "board",
+        label: "Open a project board",
+        done: visitedBoard && hasProject,
+        href: firstProject
+          ? `/app/w/${workspaceSlug}/projects/${firstProject.slug}`
+          : `/app/w/${workspaceSlug}/projects`,
+        optional: false,
+      },
+      {
+        id: "task",
+        label: "Create a task",
+        done: createdTask,
+        href: firstProject
+          ? `/app/w/${workspaceSlug}/projects/${firstProject.slug}#create-task`
+          : `/app/w/${workspaceSlug}/projects`,
+        optional: false,
+      },
+      {
         id: "invite",
         label: "Invite a teammate",
         done: hasInvite,
-        href: `/app/w/${workspaceSlug}`,
+        href: `/app/w/${workspaceSlug}#invite`,
         optional: false,
+      },
+      {
+        id: "cycles",
+        label: "Explore cycles",
+        done: visitedCycles,
+        href: `/app/w/${workspaceSlug}/cycles`,
+        optional: true,
       },
       {
         id: "labels",
@@ -64,7 +97,7 @@ export function OnboardingChecklist({ workspaceSlug }: Props) {
       {
         id: "my-work",
         label: "Open My Work",
-        done: hasProject,
+        done: visitedMyWork,
         href: `/app/w/${workspaceSlug}/my-work`,
         optional: true,
       },
@@ -75,6 +108,11 @@ export function OnboardingChecklist({ workspaceSlug }: Props) {
     invitations.length,
     labels.length,
     workspaceSlug,
+    firstProject,
+    visitedBoard,
+    createdTask,
+    visitedCycles,
+    visitedMyWork,
   ]);
 
   const requiredDone = steps
@@ -104,11 +142,7 @@ export function OnboardingChecklist({ workspaceSlug }: Props) {
           size="icon"
           aria-label="Dismiss onboarding"
           onClick={() => {
-            try {
-              localStorage.setItem(dismissKey(workspaceSlug), "1");
-            } catch {
-              // ignore
-            }
+            writeFlag(onboardingDismissKey(workspaceSlug));
             setDismissed(true);
           }}
         >
@@ -133,6 +167,9 @@ export function OnboardingChecklist({ workspaceSlug }: Props) {
               )}
               <span className={cn(step.done && "line-through")}>
                 {step.label}
+                {step.optional ? (
+                  <span className="ml-1 text-xs text-slate-400">(optional)</span>
+                ) : null}
               </span>
             </Link>
           </li>

@@ -1,6 +1,7 @@
 export { projectApi } from "./api/project.api";
 export { ProjectAccessPanel } from "./components/project-access-panel";
 export { ProjectSettingsPanel } from "./components/project-settings-panel";
+export { ProjectNextStepsBanner } from "./components/project-next-steps-banner";
 export { LabelsPanel } from "./components/labels-panel";
 export {
   useProjects,

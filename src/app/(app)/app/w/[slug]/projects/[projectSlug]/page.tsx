@@ -14,6 +14,7 @@ import {
   useToggleFavorite,
   useUpdateTask,
 } from "@/features/project";
+import { ProjectNextStepsBanner } from "@/features/project/components/project-next-steps-banner";
 import {
   TaskFilterBar,
   filtersFromSearchParams,
@@ -25,6 +26,10 @@ import { Skeleton } from "@/shared/ui/skeleton";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { PresenceAvatars } from "@/shared/components/presence-avatars";
 import { usePresence } from "@/shared/hooks/use-presence";
+import {
+  onboardingFlagKey,
+  writeFlag,
+} from "@/shared/lib/onboarding-storage";
 import { ArrowLeft, LayoutGrid, List, Settings, Star } from "lucide-react";
 import type { TaskStatus } from "@/shared/types/domain";
 import { cn } from "@/shared/lib/utils";
@@ -77,6 +82,10 @@ export default function ProjectDetailPage({ params }: Props) {
   useEffect(() => {
     setSelectedIds(new Set());
   }, [view, filters.status, filters.priority, filters.q, filters.assigneeId, filters.labelId, filters.cycleId]);
+
+  useEffect(() => {
+    writeFlag(onboardingFlagKey(slug, "visited-board"));
+  }, [slug]);
 
   function updateFilters(next: TaskFilters) {
     setFilters(next);
@@ -184,6 +193,11 @@ export default function ProjectDetailPage({ params }: Props) {
           </div>
         </div>
 
+        <ProjectNextStepsBanner
+          workspaceSlug={slug}
+          projectSlug={projectSlug}
+        />
+
         <CreateTaskForm workspaceSlug={slug} projectSlug={projectSlug} />
 
         <TaskFilterBar
@@ -201,6 +215,12 @@ export default function ProjectDetailPage({ params }: Props) {
             onSelectTask={setSelectedTaskId}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
+            onRequestCreateTask={() => {
+              document.getElementById("task-title")?.focus();
+              document
+                .getElementById("create-task")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
           />
         ) : tasksLoading ? (
           <div className="space-y-2">
@@ -226,6 +246,13 @@ export default function ProjectDetailPage({ params }: Props) {
           <EmptyState
             title="No matching tasks"
             description="Try clearing filters or add a new task."
+            actionLabel="Create a task"
+            onAction={() => {
+              document.getElementById("task-title")?.focus();
+              document
+                .getElementById("create-task")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
           />
         )}
 

@@ -94,7 +94,7 @@ export default function WorkspaceHomePage({ params }: PageProps) {
 
       <WorkspaceDashboard workspaceSlug={slug} />
 
-      <section className="space-y-4">
+      <section id="invite" className="scroll-mt-24 space-y-4">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-slate-400" />
           <h2 className="text-sm font-semibold tracking-wide text-slate-700 uppercase dark:text-zinc-300">

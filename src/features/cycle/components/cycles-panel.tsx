@@ -160,6 +160,14 @@ export function CyclesPanel({ workspaceSlug }: Props) {
         <EmptyState
           title="No cycles yet"
           description="Create a cycle to group tasks into a timeboxed sprint."
+          actionLabel="Focus create form"
+          onAction={() => {
+            const input = document.getElementById(
+              "cycle-name",
+            ) as HTMLInputElement | null;
+            input?.focus();
+            input?.scrollIntoView({ behavior: "smooth", block: "center" });
+          }}
         />
       ) : (
         <ul className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">

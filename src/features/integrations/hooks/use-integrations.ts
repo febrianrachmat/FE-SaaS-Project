@@ -78,6 +78,29 @@ export function useWebhookDeliveries(
   });
 }
 
+export function useRetryWebhookDelivery(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      webhookId,
+      deliveryId,
+    }: {
+      webhookId: string;
+      deliveryId: string;
+    }) =>
+      integrationsApi.retryWebhookDelivery(
+        workspaceSlug,
+        webhookId,
+        deliveryId,
+      ),
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: integrationKeys.deliveries(workspaceSlug, vars.webhookId),
+      });
+    },
+  });
+}
+
 export function useApiKeys(workspaceSlug: string, enabled = true) {
   return useQuery({
     queryKey: integrationKeys.apiKeys(workspaceSlug),
@@ -104,6 +127,19 @@ export function useRevokeApiKey(workspaceSlug: string) {
   return useMutation({
     mutationFn: (apiKeyId: string) =>
       integrationsApi.revokeApiKey(workspaceSlug, apiKeyId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: integrationKeys.apiKeys(workspaceSlug),
+      });
+    },
+  });
+}
+
+export function useRotateApiKey(workspaceSlug: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (apiKeyId: string) =>
+      integrationsApi.rotateApiKey(workspaceSlug, apiKeyId),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: integrationKeys.apiKeys(workspaceSlug),

@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { use } from "react";
-import { CreateProjectForm, useProjects } from "@/features/project";
+import {
+  CreateProjectForm,
+  useCreateSampleProject,
+  useProjects,
+} from "@/features/project";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
 import { EmptyState } from "@/shared/ui/empty-state";
+import { ApiError } from "@/shared/types/api";
 import { FolderKanban, Plus, Star } from "lucide-react";
 import { useState } from "react";
 
@@ -14,6 +19,7 @@ type Props = { params: Promise<{ slug: string }> };
 export default function ProjectsPage({ params }: Props) {
   const { slug } = use(params);
   const { data, isLoading } = useProjects(slug);
+  const sample = useCreateSampleProject(slug);
   const [showCreate, setShowCreate] = useState(false);
 
   return (
@@ -23,9 +29,7 @@ export default function ProjectsPage({ params }: Props) {
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-semibold">
             Projects
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Workspace /{slug}
-          </p>
+          <p className="mt-1 text-sm text-slate-500">Workspace /{slug}</p>
         </div>
         <Button onClick={() => setShowCreate((v) => !v)}>
           <Plus className="h-4 w-4" />
@@ -79,13 +83,24 @@ export default function ProjectsPage({ params }: Props) {
           ))}
         </div>
       ) : (
-        <EmptyState
-          icon={<FolderKanban className="h-10 w-10" />}
-          title="No projects yet"
-          description="Create a project to start tracking tasks."
-          actionLabel="Create project"
-          onAction={() => setShowCreate(true)}
-        />
+        <div className="space-y-3">
+          <EmptyState
+            icon={<FolderKanban className="h-10 w-10" />}
+            title="No projects yet"
+            description="Create a project to start tracking tasks, or try a sample workspace."
+            actionLabel="Create project"
+            onAction={() => setShowCreate(true)}
+            secondaryActionLabel={
+              sample.isPending ? "Creating sample…" : "Create sample project"
+            }
+            onSecondaryAction={() => sample.mutate()}
+          />
+          {sample.error instanceof ApiError ? (
+            <p className="text-center text-sm text-danger-600">
+              {sample.error.message}
+            </p>
+          ) : null}
+        </div>
       )}
     </div>
   );

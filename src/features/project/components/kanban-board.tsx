@@ -26,7 +26,9 @@ import { projectApi } from "../api/project.api";
 import { projectKeys, useTasks } from "../hooks/use-project";
 import { KANBAN_COLUMNS, computePosition, type KanbanColumnId } from "../lib/kanban";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { LabelChips } from "./label-chips";
+import { ListTodo } from "lucide-react";
 
 type Props = {
   workspaceSlug: string;
@@ -34,6 +36,7 @@ type Props = {
   onSelectTask?: (taskId: string) => void;
   selectedIds?: Set<string>;
   onToggleSelect?: (taskId: string) => void;
+  onRequestCreateTask?: () => void;
   filters?: {
     status?: TaskStatus;
     priority?: TaskPriority;
@@ -187,6 +190,7 @@ export function KanbanBoard({
   onSelectTask,
   selectedIds,
   onToggleSelect,
+  onRequestCreateTask,
   filters,
 }: Props) {
   const queryClient = useQueryClient();
@@ -312,6 +316,37 @@ export function KanbanBoard({
           <Skeleton key={c.id} className="h-64 w-72 shrink-0 rounded-2xl" />
         ))}
       </div>
+    );
+  }
+
+  const hasFilters = Boolean(
+    filters?.q ||
+      filters?.priority ||
+      filters?.assigneeId ||
+      filters?.labelId ||
+      filters?.cycleId ||
+      filters?.status,
+  );
+  const noTasks = (tasks?.length ?? 0) === 0;
+
+  if (noTasks && !hasFilters) {
+    return (
+      <EmptyState
+        icon={<ListTodo className="h-10 w-10" />}
+        title="No tasks on this board"
+        description="Add your first task to start moving work across columns."
+        actionLabel="Create a task"
+        onAction={() => onRequestCreateTask?.()}
+      />
+    );
+  }
+
+  if (noTasks && hasFilters) {
+    return (
+      <EmptyState
+        title="No matching tasks"
+        description="Try clearing filters or add a new task."
+      />
     );
   }
 

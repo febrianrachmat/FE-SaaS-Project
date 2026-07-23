@@ -126,7 +126,11 @@ export function MyWorkPanel({ workspaceSlug }: Props) {
       ) : items.length === 0 ? (
         <EmptyState
           title="Nothing assigned"
-          description="Tasks assigned to you will show up here."
+          description="Tasks assigned to you will show up here. Open a project to create or claim work."
+          actionLabel="Browse projects"
+          onAction={() => {
+            window.location.href = `/app/w/${workspaceSlug}/projects`;
+          }}
         />
       ) : (
         <ul className="space-y-2">

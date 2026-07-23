@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { Activity } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { Skeleton } from "@/shared/ui/skeleton";
+import { EmptyState } from "@/shared/ui/empty-state";
 import { cn } from "@/shared/lib/utils";
 import { useActivityFeed } from "../hooks/use-dashboard";
 import {
@@ -27,6 +29,7 @@ type Props = {
 };
 
 export function ActivityFeed({ workspaceSlug }: Props) {
+  const router = useRouter();
   const [action, setAction] = useState("");
   const filters = useMemo(
     () => (action ? { action } : undefined),
@@ -69,16 +72,13 @@ export function ActivityFeed({ workspaceSlug }: Props) {
       ) : null}
 
       {!feed.isLoading && !feed.isError && items.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 py-16 text-center dark:border-zinc-800">
-          <Activity className="h-8 w-8 text-slate-300" />
-          <p className="text-sm font-medium text-slate-600 dark:text-zinc-300">
-            No activity yet
-          </p>
-          <p className="max-w-sm text-xs text-slate-400">
-            Task updates, comments, invites, and project changes will show up
-            here.
-          </p>
-        </div>
+        <EmptyState
+          icon={<Activity className="h-8 w-8" />}
+          title="No activity yet"
+          description="Task updates, comments, invites, and project changes will show up here."
+          actionLabel="Go to projects"
+          onAction={() => router.push(`/app/w/${workspaceSlug}/projects`)}
+        />
       ) : null}
 
       {items.length > 0 ? (
@@ -86,9 +86,11 @@ export function ActivityFeed({ workspaceSlug }: Props) {
           {items.map((item) => {
             const subject = activitySubject(item);
             const href =
-              item.project?.slug
-                ? `/app/w/${workspaceSlug}/projects/${item.project.slug}`
-                : null;
+              item.project?.slug && item.task?.id
+                ? `/app/w/${workspaceSlug}/projects/${item.project.slug}?task=${item.task.id}`
+                : item.project?.slug
+                  ? `/app/w/${workspaceSlug}/projects/${item.project.slug}`
+                  : null;
             const initials = item.actor.name
               .split(" ")
               .map((p) => p[0])

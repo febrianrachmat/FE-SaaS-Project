@@ -14,7 +14,9 @@ import {
   useCreateApiKey,
   useCreateWebhook,
   useDeleteWebhook,
+  useRetryWebhookDelivery,
   useRevokeApiKey,
+  useRotateApiKey,
   useUpdateWebhook,
   useWebhookDeliveries,
   useWebhooks,
@@ -54,6 +56,7 @@ function WebhookRow({
 }) {
   const { data: deliveries = [], isLoading: deliveriesLoading } =
     useWebhookDeliveries(workspaceSlug, hook.id, showDeliveries);
+  const retry = useRetryWebhookDelivery(workspaceSlug);
 
   return (
     <li className="px-4 py-4">
@@ -123,11 +126,30 @@ function WebhookRow({
                     </span>
                     <span>attempt {d.attempt}</span>
                     <span className="text-slate-400">{formatWhen(d.createdAt)}</span>
+                    {!d.success ? (
+                      <button
+                        type="button"
+                        className="text-primary-600 hover:underline disabled:opacity-50"
+                        disabled={retry.isPending || !hook.isActive}
+                        onClick={() =>
+                          retry.mutate({
+                            webhookId: hook.id,
+                            deliveryId: d.id,
+                          })
+                        }
+                      >
+                        Retry
+                      </button>
+                    ) : null}
                   </div>
                   {d.responseSnippet ? (
                     <p className="mt-0.5 truncate font-mono text-[11px] text-slate-400">
                       {d.responseSnippet}
                     </p>
+                  ) : null}
+                  {retry.error instanceof ApiError &&
+                  retry.variables?.deliveryId === d.id ? (
+                    <p className="mt-0.5 text-danger-600">{retry.error.message}</p>
                   ) : null}
                 </li>
               ))}
@@ -159,6 +181,7 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
   const deleteWebhook = useDeleteWebhook(workspaceSlug);
   const createApiKey = useCreateApiKey(workspaceSlug);
   const revokeApiKey = useRevokeApiKey(workspaceSlug);
+  const rotateApiKey = useRotateApiKey(workspaceSlug);
 
   const [url, setUrl] = useState("");
   const [secret, setSecret] = useState("");
@@ -448,19 +471,42 @@ export function IntegrationsPanel({ workspaceSlug }: Props) {
                   </p>
                 </div>
                 {!key.revokedAt ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-danger-600"
-                    disabled={revokeApiKey.isPending}
-                    onClick={() => {
-                      if (window.confirm(`Revoke “${key.name}”?`)) {
-                        revokeApiKey.mutate(key.id);
-                      }
-                    }}
-                  >
-                    Revoke
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={rotateApiKey.isPending}
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Rotate “${key.name}”? The old key stops working immediately.`,
+                          )
+                        ) {
+                          rotateApiKey.mutate(key.id, {
+                            onSuccess: (data) => {
+                              setRevealedKey(data.key);
+                              setCopied(false);
+                            },
+                          });
+                        }
+                      }}
+                    >
+                      Rotate
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-danger-600"
+                      disabled={revokeApiKey.isPending}
+                      onClick={() => {
+                        if (window.confirm(`Revoke “${key.name}”?`)) {
+                          revokeApiKey.mutate(key.id);
+                        }
+                      }}
+                    >
+                      Revoke
+                    </Button>
+                  </div>
                 ) : null}
               </li>
             ))}

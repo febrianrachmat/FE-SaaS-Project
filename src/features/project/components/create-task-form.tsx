@@ -13,6 +13,10 @@ import {
 } from "../schemas/project.schema";
 import { useCreateTask } from "../hooks/use-project";
 import { useWorkspaceMembers } from "@/features/workspace";
+import {
+  onboardingFlagKey,
+  writeFlag,
+} from "@/shared/lib/onboarding-storage";
 
 type Props = {
   workspaceSlug: string;
@@ -48,10 +52,12 @@ export function CreateTaskForm({
 
   return (
     <form
-      className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
+      id="create-task"
+      className="scroll-mt-24 space-y-3 rounded-xl border border-slate-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
       onSubmit={handleSubmit(async (raw) => {
         try {
           await create.mutateAsync(toCreateTaskPayload(raw));
+          writeFlag(onboardingFlagKey(workspaceSlug, "created-task"));
           reset();
           onCreated?.();
         } catch {
